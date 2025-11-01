@@ -17,6 +17,7 @@
 /.next/
 /out/
 /public/images/
+/src/app/components/saved
 
 # production
 /build

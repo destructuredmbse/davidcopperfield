@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is an app to manage the community production of "David Copperfield" by the Theatre Royal, Bath.
 
-## Getting Started
+## Requirements
 
-First, run the development server:
+- Gel database (`http://www.geldata.com`)
+- Node.js
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Installing the Gel database
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+First you need to install the Gel database. On a Windows server, you need to use Windows Powershell. Note that Gel on Windows requires WSL 2 because the Gel server runs on Linux.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Here are the steps:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Open Windows Powershell.
+- Run the following command: `iwr https://www.geldata.com/ps1 -useb | iex`
+- Follow the prompts on screen to complete the installation. 
 
-## Learn More
+The script will download the gel command built for your OS and add a path to it to your shell environment.
 
-To learn more about Next.js, take a look at the following resources:
+After installation, test it by running: `gel --version`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+If you encounter a command not found error, try opening a new shell window.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## The data
 
-## Deploy on Vercel
+There's an encrypted zip file `/data/data.zip` with a dump of the database (`data.dump`). Unzip this (the Theatre Royal has the password) and use the the Gel CLI to import the dump into your target instance:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+`gel restore --all data.dump/ --dsn <target dsn>`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Replace <target dsn> with the Gel database's DSN.
+
+This process will import both the schema and the data into the new database.
+
+(If you want to try the app without the Theatre Royal's data, there a schema file - `default.gel`- in `/data` to bootstrap the databse. You'll need to manually create a system admin user via the Gel UI to get going.)
+
+## Installing the App
+
+After installing Node.js, download the source from GitHub into a directory. There's a 
+
+Then `run npm run` build to build the app and `npm run start` to start the Node.js server. If you've already installed Gel and Node.js and Gel are running to the same environment, the Gel client in the app will automatically pick up the database location from the environment variables set up by the gel instsallation. If Node.js is in a different environment to Gel, set an environment variable `GEL_DSN` with the value `gel://<host>:<port>`.
+
+## Using the App
+
+You'll need to provide the URL of the Node.js server to users. There's a system admin user "Charles Dickens" (they know the passsword)that the Theatre Royal can use to start configuring other users.

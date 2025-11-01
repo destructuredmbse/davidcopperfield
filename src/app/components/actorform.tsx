@@ -17,9 +17,11 @@ import { Combobox } from '@base-ui-components/react/combobox';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCast } from '../database/queries';
 import { personLabel } from './helpers';
+import PhotoSelector from './photoselector';
 
 interface ActorFormProps {
-  onSave: (data: actor) => void;
+  actor?: actor;
+  onSave: (data: actor, edit: boolean) => void;
   onCancel: () => void;
   className?: string;
 }
@@ -29,16 +31,20 @@ const actorKey = (actor: person) =>
   `${actor.first_name.trim().toLowerCase().replaceAll(' ', '_')}_${actor.last_name && actor.last_name.trim().toLowerCase().replaceAll(' ', '_')}`;
 
 export default function ActorForm({ 
+  actor,
   onSave, 
   onCancel, 
   className 
 }: ActorFormProps) {
 
   const [formData, setFormData] = useState<actor>({
-    first_name:  '',
-    last_name: '',
-    parent: undefined,
+    first_name:  actor?.first_name || '',
+    last_name: actor?.last_name || '',
+    photo: actor?.photo || '',
+    parent: actor?.parent || undefined,
   });
+
+  const [isEdit, setIsEdit] = useState(!(actor === undefined))
 
   const {data: cast, isLoading} = useQuery({ queryKey: [`actors`], queryFn: () => getCast() })
 
@@ -47,6 +53,13 @@ export default function ActorForm({
     setFormData(prev => {
       return {...prev,
       parent: actor}
+    });
+  };
+
+  const handlePhotoChange = (photo: string) => {
+    setFormData(prev => {
+      return {...prev,
+      photo: photo}
     });
   };
 
@@ -61,7 +74,7 @@ export default function ActorForm({
     event.preventDefault();
     
 
-    onSave(formData);
+    onSave({...formData, id:actor?actor.id:undefined}, isEdit);
   }
 
   return (
@@ -102,9 +115,25 @@ export default function ActorForm({
                 )}
               />
             </div>
+          </div>
+          <div className="space-y-1">
+            <div>
+              <label className="text-xs font-semibold text-red-800">
+                Photo filename
+              </label>
+              <input
+                type="text"
+                value={formData.photo}
+                onChange={(e) => handlePropChange(e.target.value, 'photo')}
+                className={twMerge(
+                  "w-full text-xs px-1 py-0.5 border rounded text-gray-700",
+                  "bg-gray-100 text-gray-500"
+                )}
+              />
+            </div>
 
           </div>
-          <ParentSelector handleParentChange={handleParentChange}/>
+          <ParentSelector parent={formData.parent} handleParentChange={handleParentChange}/>
           </div>
         {/* Action Buttons */}
         <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-200">
@@ -122,7 +151,7 @@ export default function ActorForm({
             className="flex items-center space-x-1 px-2 py-1 text-xs text-white bg-red-800 hover:bg-red-900 rounded transition-colors"
           >
             <SaveIcon sx={{ fontSize: 12 }} />
-            <span>Create</span>
+            <span>{`${isEdit?'Save':'Create'}`}</span>
           </button>
         </div>
       </form>
@@ -130,14 +159,14 @@ export default function ActorForm({
   );
 }
 
-function ParentSelector({ handleParentChange } : { handleParentChange: (value:actor) => void}) {
+function ParentSelector({ parent, handleParentChange } : { parent?: actor, handleParentChange: (value:actor) => void}) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const id = React.useId();
 
   const {data: cast, isLoading} = useQuery({ queryKey: [`actors`], queryFn: () => getCast() })
 
   return (
-    !isLoading && cast && <Combobox.Root items={cast} onValueChange={handleParentChange} itemToStringLabel={(a:actor) => personLabel(a)}>
+    !isLoading && cast && <Combobox.Root items={cast} value={parent} onValueChange={handleParentChange} itemToStringLabel={(a:actor) => personLabel(a)}>
       <div className="flex flex-col gap-1">
         <label className="text-xs leading-5 text-red-800 font-semibold" htmlFor={id}>
           Parent
@@ -162,13 +191,13 @@ function ParentSelector({ handleParentChange } : { handleParentChange: (value:ac
               {(actor: actor) => (
                 <Combobox.Item
                   key={actor.id}
-                  className="grid cursor-default grid-cols-[0.75rem_1fr] items-center gap-2 py-1 pr-4 pl-2 text-xs leading-2 outline-none select-none [@media(hover:hover)]:[&[data-highlighted]]:relative [@media(hover:hover)]:[&[data-highlighted]]:z-0 [@media(hover:hover)]:[&[data-highlighted]]:text-gray-50 [@media(hover:hover)]:[&[data-highlighted]]:before:absolute [@media(hover:hover)]:[&[data-highlighted]]:before:inset-x-2 [@media(hover:hover)]:[&[data-highlighted]]:before:inset-y-0 [@media(hover:hover)]:[&[data-highlighted]]:before:z-[-1] [@media(hover:hover)]:[&[data-highlighted]]:before:rounded-sm [@media(hover:hover)]:[&[data-highlighted]]:before:bg-gray-900"
+                  className="grid cursor-default grid-cols-[0.75rem_1fr] items-center gap-2 py-1 pr-4 pl-2 text-xs leading-4 outline-none select-none [@media(hover:hover)]:[&[data-highlighted]]:relative [@media(hover:hover)]:[&[data-highlighted]]:z-0 [@media(hover:hover)]:[&[data-highlighted]]:text-gray-50 [@media(hover:hover)]:[&[data-highlighted]]:before:absolute [@media(hover:hover)]:[&[data-highlighted]]:before:inset-x-2 [@media(hover:hover)]:[&[data-highlighted]]:before:inset-y-0 [@media(hover:hover)]:[&[data-highlighted]]:before:z-[-1] [@media(hover:hover)]:[&[data-highlighted]]:before:rounded-sm [@media(hover:hover)]:[&[data-highlighted]]:before:bg-gray-900"
                   value={actor}
                 >
                   <Combobox.ItemIndicator className="col-start-1">
                     <CheckIcon className="size-2" />
                   </Combobox.ItemIndicator>
-                  <div className="col-start-2">{personLabel(actor)}</div>
+                  <div className="col-start-2 capitalise">{personLabel(actor)}</div>
                 </Combobox.Item>
               )}
             </Combobox.List>
@@ -178,6 +207,8 @@ function ParentSelector({ handleParentChange } : { handleParentChange: (value:ac
     </Combobox.Root>
   );
 }
+
+
 
 function CheckIcon(props: React.ComponentProps<'svg'>) {
   return (

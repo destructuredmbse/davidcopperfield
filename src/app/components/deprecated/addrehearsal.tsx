@@ -1,20 +1,20 @@
 import { useCallback, useMemo, useState } from "react"
-import { character, person, scene, equipment, location, ensemble, day, time } from "./types"
+import { character, person, scene, equipment, location, ensemble, day, time } from "../types"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { getAllScenes, getDays, getEquipment, getLocations, getPeople, getSceneAvailability, insertReheasal, performUpdate } from "../database/queries"
+import { getAllScenes, getDays, getEquipment, getLocations, getPeople, getSceneAvailability, insertReheasal, performUpdate } from "../../database/queries"
 import { Form } from "@base-ui-components/react/form"
 import { Field } from "@base-ui-components/react/field"
 import { Fieldset } from "@base-ui-components/react/fieldset"
-import DateSelector from "./dateselector"
-import TimeSelector from "./timeselector"
-import LocationSelector from "./locationselector"
-import BSLSelector from "./bslselector"
-import CharactersSelector from "./charactersselector"
-import EquipmentSelector from "./equipmentselector"
-import { upsertRehearsalQ } from '../database/upsertrehearsalquery'
-import PeopleSelector from "./peopleselector"
-import SceneSelector from "./sceneselector"
-import PagesSelector from "./pagesselector"
+import DateSelector from "../dateselector"
+import TimeSelector from "../timeselector"
+import LocationSelector from "../locationselector"
+import BSLSelector from "../bslselector"
+import CharactersSelector from "../charactersselector"
+import EquipmentSelector from "../equipmentselector"
+import { upsertRehearsalQ } from '../../database/upsertrehearsalquery'
+import PeopleSelector from "../peopleselector"
+import SceneSelector from "../sceneselector"
+import PagesSelector from "../pagesselector"
 
 export default function AddRehearsal({onSuccess}: {onSuccess?: () => void}){
   const [sceneName, setSceneName] = useState<string>()

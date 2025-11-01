@@ -84,7 +84,8 @@ select default::scene {
     played_by: {
         id,
       first_name,
-      last_name
+      last_name,
+      photo
     },
   },
   ensemble: {
@@ -128,6 +129,7 @@ select default::rehearsal {
         id,
       first_name,
       last_name,
+      photo,
       available := count(.availability filter .date = rehearsal.day.date) > 0
     }
   },
@@ -166,19 +168,26 @@ const rehearsalQ = `
     bsl_interpreter: {
         id,
         first_name,
-        last_name
+        last_name,
+        photo
     },
     creative: {
         id,
-        first_name
+        first_name,
+        last_name,
+        photo
     },
     support: {
         id,
-        first_name
+        first_name,
+        last_name,
+        photo
     },
     volunteers: {
         id,
-        first_name
+        first_name,
+        last_name,
+        photo
     },
     scenes: {
         id,
@@ -191,6 +200,7 @@ const rehearsalQ = `
               id,
               first_name,
               last_name,
+              photo,
               available := count(.availability filter .date = rehearsal.day.date) > 0
     }
         },
@@ -220,6 +230,7 @@ const rehearsalQ = `
             id,
             last_name,
             first_name,
+            photo,
             available := count(.availability filter .date = rehearsal.day.date) > 0
         }
     },
@@ -255,7 +266,8 @@ const peopleQ = `
         id,
         first_name,
         _role,
-        last_name
+        last_name,
+        photo
     }
     filter person is not actor
 `
@@ -268,6 +280,7 @@ select default::character {
     id,
     last_name,
     first_name,
+    photo,
     child := count(.parent) > 0
   }
 }
@@ -289,6 +302,7 @@ select default::actor {
   last_name,
   id,
   first_name,
+  photo,
   availability: {
     id,
     day := to_str(.date, 'FMDay, FMDDth Month'),
@@ -342,6 +356,7 @@ select default::scene {
       id,
       first_name,
       last_name,
+      photo,
       available := count(.availability filter .date = <cal::local_date>date) > 0
     }
   },
@@ -363,6 +378,7 @@ select default::ensemble {
     id,
     last_name,
     first_name,
+    photo,
     plays: {
       name,
       id
@@ -373,6 +389,7 @@ select default::ensemble {
     last_name,
     id,
     first_name,
+    photo,
     plays: {
       id,
       name
@@ -397,6 +414,7 @@ select default::ensemble {
     id,
     last_name,
     first_name,
+    photo,
     plays: {
       name,
       id
@@ -407,6 +425,7 @@ select default::ensemble {
     last_name,
     id,
     first_name,
+    photo,
     plays: {
       id,
       name
@@ -421,6 +440,7 @@ const castQ = `
 select default::actor {
   last_name,
   first_name,
+  photo,
   id,
   ensemble: {
     name,
@@ -434,7 +454,8 @@ select default::actor {
   parent: {
     id,
     first_name,
-    last_name
+    last_name,
+    photo
   },
   percentage := to_str(100*count(.availability)/count((select rehearsal_day)),'FM999%')
 }
@@ -451,7 +472,8 @@ select default::person {
   rba,
   username,
   email,
-  first_logon
+  first_logon,
+  photo
 } 
   filter person is not actor
  `
@@ -564,8 +586,7 @@ export async function getCastAvailability(month: number):Promise<Array<actor>> {
 export async function getDays():Promise<Array<day>> {
   const client = createClient()
   if(!client) {return []}
-  const _days = await client.query<_day>(daysQ)
-    return _days.map((_d) => {const {ddd, ...rest} = _d; return {...rest, _date:ddd}})
+  return await client.query<day>(daysQ)
 }
 
 export async function getStaff():Promise<Array<user>> {

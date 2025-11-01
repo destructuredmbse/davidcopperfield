@@ -34,7 +34,7 @@ const times:time[] =
   },
 ]
 
-export default function TimeSelector({time, setSelectedTimes} :{ time?:time, setSelectedTimes: React.Dispatch<React.SetStateAction<time|undefined>>}){
+export default function TimeSelector({time, setSelectedTimes} :{ time:time|null, setSelectedTimes: React.Dispatch<React.SetStateAction<time|null>>}){
   const id = React.useId()
     return (
       <Combobox.Root items={times} 

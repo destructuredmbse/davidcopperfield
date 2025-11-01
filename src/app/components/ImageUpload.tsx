@@ -135,19 +135,22 @@ export default function ImageUpload({ uploadType, onUploadComplete }: ImageUploa
         return {
           title: 'Upload Staff Image',
           directory: 'public/images/staff/',
-          description: 'staff members'
+          description: 'staff members',
+          type: 'staff member'
         }
       case 'cast':
         return {
           title: 'Upload Cast/Actor Image',
           directory: 'public/images/cast/',
-          description: 'cast members and actors'
+          description: 'cast members and actors',
+          type: 'actor'
         }
       default:
         return {
           title: 'Upload Image',
           directory: 'public/images/',
-          description: 'people'
+          description: 'people',
+          type: 'person'
         }
     }
   }
@@ -168,6 +171,7 @@ export default function ImageUpload({ uploadType, onUploadComplete }: ImageUploa
           <li>• Maximum file size: 5MB</li>
           <li>• Images will be stored in <code className="bg-blue-100 px-1 rounded">{config.directory}</code></li>
           <li>• This upload is for {config.description}</li>
+          <li>• Update the {config.type}'s photo filename with the filename you've used here</li>
         </ul>
       </div>
 

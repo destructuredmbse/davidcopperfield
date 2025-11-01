@@ -57,7 +57,7 @@ export default function Rehearsal({id, setRehearsalOpen, deleteRow, edit}:{id:st
             <div className="flex flex-row gap-2 pt-4">
                 {rehearse.scenes.map((s, i) => <SceneCard key={i} scene={s} ensemble={true} />)}  
                 <CalledList called={rehearse.called}  ensemble={rehearse.ensemble} className={`${cn}`} />
-                <div className="flex grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                     <PeopleList key="1" className={cn} job='Creatives' people={rehearse.creative as person[]} />
                     <PeopleList key="2" className={cn} job='Assistants' people={rehearse.assistants as person[]} />
                     <PeopleList key="3" className={cn} job='Support' people={rehearse.support as person[]} />
@@ -74,12 +74,12 @@ export default function Rehearsal({id, setRehearsalOpen, deleteRow, edit}:{id:st
         {edit && <div className="flex flex-row gap-1 pt-2 justify-end">
             <button 
                 onClick={() => setDialogOpen(true)}
-                className="text-xs w-20 text-red-500 border border-red-500 rounded">
+                className="text-xs w-20 text-red-700 border border-red-700 rounded">
                 delete
             </button>
             <button 
                 onClick={() => {setEditOpen(true)}}
-                className="text-xs w-20 text-green=600 border border-green-600 rounded">
+                className="text-xs w-20 text-green-800 border border-green-800 rounded">
                 edit
             </button>
             </div>}

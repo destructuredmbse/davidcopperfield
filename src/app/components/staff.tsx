@@ -15,8 +15,8 @@ import StaffCard from './staffcard';
 import { Input } from '@base-ui-components/react/input';
 import { useState, useMemo, useCallback } from 'react';
 import Skeletons from './skeletons';
-import StaffManager from './StaffManager';
-import ImageUpload from './ImageUpload';
+import StaffManager from './staffmanager';
+import ImageUpload from './imageupload';
 
 // Move filter function outside component to prevent recreation
 const filter_criteria = (a:user, f:string) =>

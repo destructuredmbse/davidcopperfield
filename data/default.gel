@@ -1,0 +1,189 @@
+
+module default {
+    scalar type rba extending enum<full, scenes, actors, characters, rehearsals, readonly, admin>;
+    global current_user: uuid;
+
+    type meta {
+        created: datetime {
+            rewrite insert using (datetime_of_statement());
+        };
+        modified: datetime {
+            rewrite update using (datetime_of_statement());
+        };
+        # access policy ready_only
+        #     allow select
+        #     using (global current_user.rba ?= rba.readonly);
+        # access policy full
+        #     allow all
+        #     using (global rba.full in current_user.rba);
+
+    }
+    type day extending meta{
+        date: cal::local_date;
+    }
+
+    type rehearsal_day extending day{
+        name:str {
+            constraint exclusive;
+        }
+        available := .<availability[is actor]
+    }
+
+    type section extending meta{
+        name:str;
+        colour:str;
+        ensemble:ensemble;
+        multi characters:character;
+        multi scenes:scene{
+            on target delete allow;
+        }
+    }
+
+    type act extending meta{
+        name:str{
+            constraint exclusive;
+        }
+        multi sections:section{
+            on target delete allow;
+        }
+        multi scenes:scene;
+    }
+
+    type scene extending meta{
+        name:str{
+            constraint exclusive;
+        }
+        multi characters:character{
+            on target delete allow;
+        }
+        ensemble:ensemble;
+        pages:str;
+        previous:scene;
+        next := .<previous[is scene];
+        status:scene_status;
+        section := .<scenes[is section]
+    }
+
+    scalar type scene_status extending enum<unrehearsed, rehearsed, ready>;
+    
+    type person extending meta{
+        required first_name: str;
+        last_name: str;  
+        _role:str;
+        username: str {
+            constraint exclusive;
+        }
+        multi rba: rba;
+        pwHash:str;
+        email:str;
+        photo:str;
+        is_admin: bool { default := false };
+        first_logon:bool { default := true };
+    }
+
+    type team extending meta{
+        name:str{
+            constraint exclusive;
+        }
+        multi members:person{
+            on target delete allow;
+        }
+    }
+
+    type equipment extending meta{
+        name:str{
+            constraint exclusive;
+        }
+        type:str;
+        status:equipment_status;
+    }
+
+    scalar type equipment_status extending enum<broken, working, in_repair>;
+
+    type location{
+        name:str;
+        adress:str;
+        post_code:str;
+    }
+
+    type rehearsal extending meta{
+        day: day{
+            on target delete allow;
+        }
+        date: cal::local_date;
+        start_time: cal::local_time;
+        end_time: cal::local_time;
+        multi venues:location;
+        aims:str;
+        outcome:str;
+        multi notes:str;
+        multi creative:person{
+            on target delete allow;
+        }
+        multi support:person{
+            on target delete allow;
+        }
+        multi scenes:scene{
+            pages:str;
+            on target delete allow;
+        }
+        ensemble:ensemble;
+        multi equipment:equipment{
+            on target delete allow;
+        }
+        multi called:character{
+            on target delete allow;
+        }
+        multi volunteers:person{
+            on target delete allow;
+        }
+        multi assistants:person{
+            on target delete allow;
+        }
+        multi students:person{
+            on target delete allow;
+        }
+        bsl_interpreter:person;
+    }
+
+    type actor extending person{
+        overloaded required last_name: str;
+        parent: person ;
+        multi children := .<parent[is actor];
+        multi plays := .<played_by[is character];
+        multi availability: rehearsal_day {
+            available: str;
+            on source delete allow;
+        }
+        ensemble := .<members[is ensemble];
+        constraint exclusive on ((.first_name, .last_name));
+    }
+
+    type character extending meta {
+        required name: str{
+            constraint exclusive;
+        }
+        description: str;
+        section := .<characters[is section];
+        multi played_by: actor{
+            on target delete allow;
+        }
+    }
+
+    type ensemble extending meta {
+        required name: str {
+            constraint exclusive;
+        }
+        description: str;
+        multi members: actor{
+            on target delete allow;
+        }
+        multi featured: actor{
+            on target delete allow;
+        }
+
+        multi subensembles: ensemble;
+    }
+    
+}
+

@@ -4,7 +4,7 @@ export interface actor{
     last_name:string;
     available?:boolean
     child?:boolean
-    photo?:any
+    photo?:string
     parent?:actor | undefined;
     plays?:character[];
     ensemble?:ensemble[];
@@ -18,6 +18,7 @@ export interface person{
     first_name: string,
     last_name?: string,
     _role?:string
+    photo?:string
 }
 
 export interface character{

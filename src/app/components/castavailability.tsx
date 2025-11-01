@@ -21,6 +21,7 @@ import { Menu } from '@base-ui-components/react/menu';
 import { CheckIcon } from './icons';
 import ChevronLeftOutlinedIcon from '@mui/icons-material/ChevronLeftOutlined';
 import ChevronRightOutlinedIcon from '@mui/icons-material/ChevronRightOutlined';
+import { useUserAccess } from '@/contexts/UserAccessContext';
 
 // Move filter function outside component to prevent recreation
 const filter_criteria = (a:actor, f:string) =>
@@ -85,6 +86,11 @@ export function CastAvailability(){
   const [away, setAway] = useState(false)
   const queryClient = useQueryClient()
 
+  const { hasAnyRole, isLoading: accessLoading, rba, isAdmin } = useUserAccess()
+  // Use the context helper instead of manually checking rba
+  const edit = hasAnyRole(['actors', 'full'])
+
+
     const updateAvailabilityMutation = useMutation({
         mutationFn: (updateQ:string) => {return performUpdate(updateQ)},
         onSuccess: async () => {
@@ -130,7 +136,6 @@ const hasUnsavedChanges = useMemo(() => {
 
     const ready = !isLoadingCastAvailability && !isLoadingRehearsalDays
 
-    console.log(`ready ${ready}, month ${month}` )
   // Memoize rehearsal days to avoid recalculation
   const rds = useMemo(() => {
     if (!isLoadingCastAvailability && !isLoadingRehearsalDays) {
@@ -139,8 +144,6 @@ const hasUnsavedChanges = useMemo(() => {
     return []
   }, [rehearsalDays, isLoadingCastAvailability, isLoadingRehearsalDays])
 
-  console.log(`rehearsal days ${JSON.stringify(rehearsalDays && rehearsalDays.map(d => d.day))}` )
-  console.log(`rds ${JSON.stringify(rds.map(d => d.day))}` )
 
   // Memoize filtered actors to prevent recalculation on every render
   const filteredActors = useMemo(() => {
@@ -184,7 +187,6 @@ const hasUnsavedChanges = useMemo(() => {
   }, [committed, setCommitted, setChanges]);
 
   const navigateAway = useCallback((newMonth:number) =>{
-    console.log(`new month ${newMonth}, month ${month} changes ${changes.size} away ${away}`)
     if(month !== newMonth){
         if(changes.size !== 0)setAway(true)
         else setMonth(newMonth)
@@ -203,7 +205,7 @@ const hasUnsavedChanges = useMemo(() => {
                 onValueChange={handleFilterChange}
                 />
             </div>
-            <div data-away={away} className='flex flex-row gap-2 absolute content-center bottom-2 right-2 p-1 data-[away=true]:bg-red-600'>
+            {edit && <div data-away={away} className='flex flex-row gap-2 absolute content-center bottom-2 right-2 p-1 data-[away=true]:bg-red-600'>
                 <button            
                     disabled={changes.size === 0}
                     data-away={away}
@@ -225,7 +227,7 @@ const hasUnsavedChanges = useMemo(() => {
                 >
                     Save changes
                 </button>
-            </div>
+            </div>}
         </div>
       {/* Table container with sticky header */}
       <div className="flex-1 overflow-y-auto max-h-full">
@@ -256,7 +258,7 @@ const hasUnsavedChanges = useMemo(() => {
           {filteredActors.map((actor, actorIndex) => (
             <div key={actor.id || `${actor.first_name}_${actor.last_name}`} className="flex hover:bg-gray-50">
               <div className="w-48 p-3 border-r border-l border-b border-gray-200 bg-white text-sm capitalize">{personLabel(actor)}</div>
-              {rds.map((day, dayIndex) => <Cell key={day.id} actor={actor} day={day} committed={committed} updateActorAvailability={updateActorAvailability}/>)}
+              {rds.map((day, dayIndex) => <Cell key={day.id} actor={actor} day={day} edit={edit} committed={committed} updateActorAvailability={updateActorAvailability}/>)}
             </div>
           ))}
         </div>
@@ -265,7 +267,7 @@ const hasUnsavedChanges = useMemo(() => {
   )
 }
 
-function Cell({actor, day, committed, updateActorAvailability}:{actor:actor, day:day, committed:boolean, updateActorAvailability:(actorId: string, dayId: string, available: boolean) => void}){
+function Cell({actor, day, committed, edit, updateActorAvailability}:{actor:actor, day:day, committed:boolean, edit:boolean, updateActorAvailability:(actorId: string, dayId: string, available: boolean) => void}){
     const [changed, setChanged] = useState(false)
     const [checked, setChecked] = useState(actor.availability && actor.availability.some(av => av._date === day._date))
     const available = actor.availability && actor.availability.some(av => av._date === day._date)
@@ -282,8 +284,10 @@ function Cell({actor, day, committed, updateActorAvailability}:{actor:actor, day
         <div data-changed={`${changed}`} className="w-16 p-3 border-r border-b border-gray-200 bg-white data-[changed=true]:bg-gray-200 items-center">
             <Checkbox.Root
                 checked={checked}
-                className="flex size-5 items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800 data-[checked]:bg-green-600 data-[unchecked]:border data-[unchecked]:border-red-600"
+                className="flex size-5 items-center justify-center rounded-sm focus-visible:outline focus-visible:outline-offset-2 focus-visible:outline-blue-800 data-[checked]:bg-green-600 data-[unchecked]:border data-[unchecked]:border-red-600"
                 onCheckedChange={(checked:boolean) => change(checked)}
+                disabled={!edit}
+                readOnly={!edit}
             >
                 <Checkbox.Indicator className="flex text-gray-50 data-[unchecked]:hidden">
                 <CheckIcon className="size-3" />

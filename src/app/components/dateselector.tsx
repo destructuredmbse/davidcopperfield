@@ -1,22 +1,24 @@
-'use client'
 import * as React from 'react';
 import { Autocomplete } from '@base-ui-components/react/autocomplete';
 import { day } from './types';
 import { Combobox } from '@base-ui-components/react/combobox';
 import { CheckIcon, ChevronDownIcon, ClearIcon } from './icons';
 
-export default function DateSelector({day, days, setSelectedDay}: {day?:day, days:day[], setSelectedDay: React.Dispatch<React.SetStateAction<day|undefined>>}) {
+export default function DateSelector({day, days, setSelectedDay}: {day:day|null, days:day[], setSelectedDay: (value:day|null) => void}) {
   const id = React.useId();
-    console.log(`number of days ${days.length}`)
+    console.log(`number of days ${days.length} selected day ${day?.short}`)
     return (
       <Combobox.Root items={days} 
               value={day || null}
-              onValueChange={(value) => setSelectedDay(value || undefined)}>
+              onValueChange={(value) => setSelectedDay(value)}
+              itemToStringLabel={(item) => item?.short?item.short:''}
+              isItemEqualToValue={(itemValue, selectedValue) => itemValue !== null && selectedValue !== null && itemValue.id === selectedValue.id}
+              filter={(itemValue:day, query) => itemValue?.short?itemValue.short?.toLowerCase().includes(query.toLowerCase()) : false}>
         <div className="flex flex-row items-center relative text-gray-900">
           <label className='text-sm font-semibold text-gray-900 pr-2' htmlFor={id}>Date</label>
           <Combobox.Input
             placeholder="Select a date"
-            value={day?.short || null}
+            value={day?.short?day.short:''}
             id={id}
             className="h-6 pr-2 indent-2 rounded-md font-normal text-sm text-gray-900 bg-[canvas] "
           />

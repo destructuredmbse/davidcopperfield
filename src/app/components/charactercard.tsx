@@ -1,7 +1,7 @@
 import { twMerge } from 'tailwind-merge'
 import { CharacterLabel, EnsembleLabel, PersonLabel } from './labels'
 import { actor, character} from './types'
-import SafeAvatar from './SafeAvatar'
+import SafeAvatar from './safeavatar'
 import React, { act, useCallback, useState } from 'react';
 import { Popover } from '@base-ui-components/react/popover';
 import { ArrowSvg, BellIcon, CheckIcon, ClearIcon } from './icons';
@@ -36,7 +36,7 @@ function CharacterCard({character, edit, characterMutate, className}: {character
           <div className='absolute top-2 right-2'>
             {num === 1 ? (
               <SafeAvatar 
-                src={`/images/cast/${actorKey(character.played_by[0])}.png`}
+                src={`/images/cast/${character.played_by[0].photo}`}
                 alt={`${character.played_by[0].first_name} ${character.played_by[0].last_name}`}
                 fallbackIcon="person"
               />

@@ -19,12 +19,13 @@ export default function Home() {
   return (
       <main className="flex flex-col gap-4 w-5/6 row-start-2 items-center sm:items-start">
            <div className="flex cols w-full">
-            <div className="flex items-centre w-full">
+            <div className="flex justify-center w-full">
               <Image 
                 src='/Houghton_HEW_2.6.15_-_Dickens,_David_Copperfield.jpg'
                 alt='The cover of a signed first edition David Copperfield'
                 width={348}
                 height={599}
+                className="p-6"
               />
             </div>
           </div>

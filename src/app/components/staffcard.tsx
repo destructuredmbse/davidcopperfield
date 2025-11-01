@@ -1,7 +1,7 @@
 import { twMerge } from 'tailwind-merge'
 import { CharacterLabel, EnsembleLabel, PersonLabel } from './labels'
 import { person, user } from './types'
-import SafeAvatar from './SafeAvatar'
+import SafeAvatar from './safeavatar'
 import React, { useState } from 'react';
 
 const actorKey = (actor:person) => `${actor.first_name.trim().toLowerCase().replaceAll(' ', '_')}_${actor.last_name && actor.last_name.trim().toLowerCase().replaceAll(' ', '_')}`;
@@ -14,7 +14,7 @@ export default function StaffCard({staff, className}: {staff?:user, className?: 
         <div className='absolute top-2 right-2'>
           {staff && (
             <SafeAvatar 
-              src={`/images/staff/${actorKey(staff)}.png`}
+              src={`/images/staff/${staff.photo}`}
               alt={`${staff.first_name} ${staff.last_name || ''}`}
             />
           )}

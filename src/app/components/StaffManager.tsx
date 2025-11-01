@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import StaffCardForm from './StaffCardForm';
+import StaffCardForm from './staffcardform';
 import StaffCard from './staffcard';
 import { person, user } from './types';
 import AddIcon from '@mui/icons-material/Add';
@@ -25,13 +25,14 @@ const updateUserQ = (user:user) => `
 update person filter .id = <uuid>"${user.id}"
 set{
     first_name := <str>"${user.first_name}",
-    ${user.last_name?`last_name := <str>"${user.last_name}",`:''}
-    ${user._role?`_role := <str>"${user._role}",`:''}
-    ${user.email?`email := <str>"${user.email}",`:''}
-    ${user.username?`username := <str>"${user.username}",`:`username := <str>{},`}
+    ${'last_name' in user?`last_name := <str>"${user.last_name}",`:''}
+    ${'_role' in user?`_role := <str>"${user._role}",`:''}
+    ${'photo' in user?`photo := <str>"${user.photo}",`:''}
+    ${'email' in user?`email := <str>"${user.email}",`:''}
+    ${'username' in user?`username := <str>"${user.username}",`:`username := <str>{},`}
     ${user.is_admin?`is_admin := <bool>${user.is_admin},`:`is_admin := <bool>false,`}
     ${user.rba?`rba := {${user.rba.map(r => `<rba>"${r}"`).join(', ')}},`:`rba := {},`}
-    ${user.first_logon?`first_logon := <bool>${user.first_logon}`:`first_logon := <bool>true`}
+    ${'first_logon' in user?`first_logon := <bool>${user.first_logon}`:`first_logon := <bool>true`}
 }
 `
 
@@ -41,6 +42,7 @@ insert person
     first_name := <str>"${user.first_name}",
     ${user.last_name?`last_name := <str>"${user.last_name}",`:''}
     ${user._role?`_role := <str>"${user._role}",`:''}
+    ${'photo' in user?`photo := <str>"${user.photo}",`:''}
     ${user.email?`email := <str>"${user.email}",`:''}
     ${user.username?`username := <str>"${user.username}",`:''}
     ${user.is_admin?`is_admin := <bool>${user.is_admin},`:''}
@@ -168,7 +170,6 @@ export default function StaffManager({ existingStaff }: StaffManagerProps) {
 
   
         <Dialog.Portal>
-                {/* <Dialog.Backdrop className="fixed inset-0 min-h-dvh bg-black opacity-20 transition-all duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 dark:opacity-70 supports-[-webkit-touch-callout:none]:absolute" /> */}
                 {!dialogOpen && <Dialog.Popup className="fixed top-1/2 left-1/2 z-40 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:outline-gray-300">
                     <div className="flex flex-wrap gap-4">
                         {/* Show form when open */}

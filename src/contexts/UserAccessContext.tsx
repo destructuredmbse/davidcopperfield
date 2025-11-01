@@ -2,11 +2,13 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
+import { user } from '@/app/components/types';
 
 interface UserAccessContextType {
   rba: string[];
   isLoading: boolean;
   isAdmin: () => boolean;
+  hasFirstName: () => string;
   hasRole: (role: string) => boolean;
   hasAnyRole: (roles: string[]) => boolean;
   hasAllRoles: (roles: string[]) => boolean;
@@ -29,6 +31,8 @@ export function UserAccessProvider({ children }: UserAccessProviderProps) {
     return rba.includes(role);
   };
 
+  const hasFirstName = ():string => { return session?.user.first_name || ''}
+
   // Helper function to check if user is an admin
   const isAdmin = (): boolean => {
     return session?.user.is_admin || false;
@@ -49,6 +53,7 @@ export function UserAccessProvider({ children }: UserAccessProviderProps) {
     isLoading,
     isAdmin,
     hasRole,
+    hasFirstName,
     hasAnyRole,
     hasAllRoles,
   };

@@ -45,7 +45,7 @@ export function Characters(){
     const queryClient = useQueryClient()
     const [isFormOpen, setIsFormOpen] = useState(false)
 
-    const { hasAnyRole, isLoading: accessLoading, rba } = useUserAccess()
+    const { hasAnyRole, isLoading: accessLoading, rba, isAdmin } = useUserAccess()
 
         const characterMutation = useMutation({
         mutationFn: (query:string) => {return performUpdate(query)},
@@ -90,6 +90,7 @@ export function Characters(){
 
     return(
     <Dialog.Root open={isFormOpen}>
+
     <div className="flex flex-col h-screen">
       <div className='pb-4 w-full relative'>
         <p className='pr-2'>Filter</p>
@@ -103,7 +104,7 @@ export function Characters(){
         <div className='w-9/10 h-dvh flex flex-wrap flew-row columns-xs gap-4'>
           {isLoading ? <Skeletons /> :
             filteredCharacters.map((c: character, i) => <CharacterCard key={i} character={c} characterMutate={characterMutation.mutate} className={CARD_CLASSNAME} edit={edit}/>)}
-                {edit && <div className="size-48 p-4 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                {!isLoading && edit && <div className="size-48 p-4 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
                         <div className="text-center text-gray-500">
                             <Dialog.Trigger onClick={() => setIsFormOpen(true)}>
                                 <AddIcon sx={{ fontSize: 32 }} className="mx-auto mb-2" />
@@ -117,19 +118,17 @@ export function Characters(){
 
 
       <Dialog.Portal>
-              {/* <Dialog.Backdrop className="fixed inset-0 min-h-dvh bg-black opacity-20 transition-all duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 dark:opacity-70 supports-[-webkit-touch-callout:none]:absolute" /> */}
               {!dialogOpen && <Dialog.Popup className="fixed top-1/2 left-1/2 z-40 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:outline-gray-300">
                   <div className="flex flex-wrap gap-4">
-                      {/* Show form when open */}
-                      { (
-                              <div className="relative">
-                              <CharacterForm
-                                  onSave={handleSave}
-                                  onCancel={handleCancel}
-                                  />
-                              {/* <HelpPopover /> */}
-                          </div>
-                      )}
+                    { 
+                      <div className="relative">
+                      <CharacterForm
+                          onSave={handleSave}
+                          onCancel={handleCancel}
+                          />
+                          {/* <HelpPopover /> */}
+                      </div>
+                    }
                   </div>
               </Dialog.Popup>}
           </Dialog.Portal>

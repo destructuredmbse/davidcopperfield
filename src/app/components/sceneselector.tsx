@@ -3,13 +3,15 @@ import { scene } from "./types";
 import { Combobox } from "@base-ui-components/react/combobox";
 import { CheckIcon, ChevronDownIcon, ClearIcon } from "./icons";
 
-export default function SceneSelector({scene, scenes, setSceneName}:{scene?:scene, scenes:scene[], setSceneName:(item:string) => void}){
+export default function SceneSelector({scene, scenes, setSelectedScene}:{scene?:scene, scenes:scene[], setSelectedScene:(item:scene) => void}){
   const id = React.useId();
 
   return (
       <Combobox.Root items={scenes} 
               value={scene || null}
-              onValueChange={(value) => setSceneName(value?.name || '')}>
+              onValueChange={(value) => value !== null && setSelectedScene(value)}
+              itemToStringValue={(item) => item !== null?item.name:''}
+              isItemEqualToValue={(itemValue, selectedValue) => itemValue !== null && selectedValue !== null && itemValue.id === selectedValue.id}>
         <div className="flex flex-row items-center relative text-gray-900">
           <label className='text-sm font-semibold text-gray-900 pr-2' htmlFor={id}>Aim</label>
           <Combobox.Input

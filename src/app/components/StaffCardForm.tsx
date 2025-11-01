@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { person, user } from './types';
-import SafeAvatar from './SafeAvatar';
+import SafeAvatar from './safeavatar';
 // Temporarily commenting out problematic imports to isolate the issue
 // import { Field } from '@base-ui-components/react/field';
 // import { Form } from '@base-ui-components/react/form';
@@ -23,11 +23,13 @@ interface StaffCardFormProps {
 
 // Available role options for users
 const ROLE_OPTIONS = [
+    'scenes',
     'rehearsals',
     'actors',
     'characters',
+    'full',
     'readonly',
-    'full'
+    
 ];
 
 const actorKey = (actor: person) => 
@@ -46,6 +48,7 @@ export default function StaffCardForm({
   const [formData, setFormData] = useState<user>({
     first_name: staff?.first_name || '',
     last_name: staff?.last_name || '',
+    photo: staff?.photo || '',
     _role:staff?._role || '',
     username: (staff && 'username' in staff) ? staff.username : '',
     email: (staff && 'email' in staff) ? staff.email : '',
@@ -76,14 +79,15 @@ export default function StaffCardForm({
     setFormData(prev => ({
       ...prev,
       rba: checked 
-        ? role === 'full' ? ['full', 'characters', 'actors', 'rehearsals'] // full => all
+        ? role === 'full' ? ['full', 'scenes', 'characters', 'actors', 'rehearsals'] // full => all
         : role === 'readonly' ? ['readonly'] // readonly => readonly only
         : prev.rba // is prev.rba set already?
-        ? prev.rba.filter(r => r !== 'readonly').length < 2  // only one selected so far
+        ? prev.rba.filter(r => r !== 'readonly').length < 3  // only one or two selected so far
         ? [...prev.rba.filter(r => r !== 'readonly'), role] // so just add the new one
         : [...prev.rba.filter(r => r !== 'readonly'), ...[role, 'full']] // othrwise all selected so also select 'full'
         : [role] // rba hadn't been set so add the first one selected
-        : (prev.rba || []).filter(r => r !== role) // finally remove the unchecked one
+        : role === 'full'? prev.rba // don't make a change
+        : (prev.rba || []).filter(r => r !== role || r === 'full') // finally remove the unchecked one and 'full'
     }));
   };
 
@@ -159,6 +163,20 @@ export default function StaffCardForm({
                 type="text"
                 value={formData._role || ''}
                 onChange={(e) => handleInputChange('_role', e.target.value)}
+                className={twMerge(
+                  "w-full text-xs px-1 py-0.5 border rounded text-gray-700",
+                )}
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-red-800">
+                Photo filename
+              </label>
+              <input
+                type="text"
+                value={formData.photo || ''}
+                onChange={(e) => handleInputChange('photo', e.target.value)}
                 className={twMerge(
                   "w-full text-xs px-1 py-0.5 border rounded text-gray-700",
                 )}

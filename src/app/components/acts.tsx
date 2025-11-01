@@ -49,53 +49,57 @@ set {
 export function Acts(){
 
     const {data:acts, isLoading} = useQuery({ queryKey: [`acts`], queryFn: () => getActs() })
+  const { hasAnyRole, isLoading: accessLoading, rba, isAdmin } = useUserAccess()
+  // Use the context helper instead of manually checking rba
+  const edit = hasAnyRole(['scenes', 'full'])
+ 
   
     return(
         <div className='w-9/10 h-dvh'>
-    <Tabs.Root className="rounded-md border border-gray-200" defaultValue="act1">
+    <Tabs.Root className="rounded-md" defaultValue="act1">
       <Tabs.List className="relative z-0 flex gap-1 px-1 shadow-[inset_0_-1px] shadow-gray-200">
         <Tabs.Tab
-          className="flex h-4 items-center justify-center border-0 px-2 text-sm font-medium break-keep whitespace-nowrap text-gray-600 outline-none select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 hover:text-gray-900 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline focus-visible:before:outline-2 data-[selected]:text-gray-900"
+          className="flex h-6 items-center justify-center p-2 border-t-2 border-x-2 rounded-t-lg border-red-800 text-sm font-medium break-keep whitespace-nowrap text-gray-600 select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 hover:text-gray-900 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline data-[selected]:text-gray-900"
           value="act1"
         >
           Act 1
         </Tabs.Tab>
         <Tabs.Tab
-          className="flex h-4 items-center justify-center border-0 px-2 text-sm font-medium break-keep whitespace-nowrap text-gray-600 outline-none select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 hover:text-gray-900 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline focus-visible:before:outline-2 data-[selected]:text-gray-900"
+          className="flex h-6 items-center justify-center p-2 border-t-2 border-x-2 rounded-t-lg border-red-800 text-sm font-medium break-keep whitespace-nowrap text-gray-600 select-none before:inset-x-0 before:inset-y-1 before:rounded-sm before:-outline-offset-1 before:outline-blue-800 hover:text-gray-900 focus-visible:relative focus-visible:before:absolute focus-visible:before:outline data-[selected]:text-gray-900"
           value="act2"
         >
           Act 2
         </Tabs.Tab>
-        <Tabs.Indicator className="absolute top-1/2 left-0 z-[-1] h-6 w-[var(--active-tab-width)] translate-x-[var(--active-tab-left)] -translate-y-1/2 rounded-sm bg-gray-100 transition-all duration-200 ease-in-out" />
+        <Tabs.Indicator className="absolute top-1/2 left-0 z-[-1] h-6 w-[var(--active-tab-width)] translate-x-[var(--active-tab-left)] -translate-y-1/2 rounded-sm bg-gray-200 transition-all duration-200 ease-in-out" />
       </Tabs.List>
       <Tabs.Panel
-        className="relative flex items-center justify-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline focus-visible:outline-2"
+        className="relative flex items-center rounded-lg outline-2 outline-red-800 justify-center -outline-offset-1 focus-visible:rounded-md focus-visible:outline-2"
         value="act1"
       >
-        <Sections sections={acts?acts[0].sections:[]}/>
+        <Sections sections={acts?acts[0].sections:[]} edit={edit}/>
       </Tabs.Panel>
       <Tabs.Panel
-        className="relative flex items-center justify-center -outline-offset-1 outline-blue-800 focus-visible:rounded-md focus-visible:outline focus-visible:outline-2"
+        className="relative flex items-center rounded-lg outline-2 outline-red-800 justify-center -outline-offset-1 focus-visible:rounded-md focus-visible:outline-2"
         value="act2"
       >
-        <Sections sections={acts?acts[1].sections:[]}/>
+        <Sections sections={acts?acts[1].sections:[]} edit={edit}/>
       </Tabs.Panel>
     </Tabs.Root>
     </div>
     )}
 
-    function Sections({sections}: {sections: section[]}) {
+    function Sections({sections, edit}: {sections: section[], edit:boolean}) {
     
     return(
             <Accordion.Root multiple={false} className="flex w-full p-8 max-w-[calc(100vw-8rem)] flex-col justify-center text-gray-900">
               {sections?sections.map((section, ind) => (
-                <Section key={ind} section={section} />
+                <Section key={ind} section={section} edit={edit}/>
               )):<p>No section data</p>}
             </Accordion.Root>
     )
   }
 
-  function Section({section}:{section: section}){
+  function Section({section, edit}:{section: section, edit:boolean}){
     
     const {bg, bgButton, text, bgHover, alt_text} = colours(section.colour)
 
@@ -112,23 +116,17 @@ export function Acts(){
           </Accordion.Trigger>
         </Accordion.Header>
         <Accordion.Panel className={panelcn}>
-          <Panel section={section} />
+          <Panel section={section} edit={edit}/>
         </Accordion.Panel>
       </Accordion.Item>
     )
   }
 
-  function Panel({section}:{section:section}){
+  function Panel({section, edit}:{section:section, edit:boolean}){
   const queryClient = useQueryClient()
-  const [isFormOpen, setIsFormOpen] = useState(false)
-
-
-  const { hasAnyRole, isLoading: accessLoading, rba } = useUserAccess()
-  // Use the context helper instead of manually checking rba
-  const edit = hasAnyRole(['scenes', 'full'])
- 
+  const [isFormOpen, setIsFormOpen] = useState(false) 
   
-const sceneMutation = useMutation({
+    const sceneMutation = useMutation({
       mutationFn: (query:string) => {return performUpdate(query)},
       onSuccess: async () => {
           await Promise.all([
@@ -143,7 +141,7 @@ const sceneMutation = useMutation({
             console.log(`message ${e.message}, name ${e.name}, cause ${e.cause}`)
             if(e.name === 'ConstraintViolationError')alert('The name of a scene has to be unique!');
       }
-  })
+    })
 
     const handleSave = (isEdit: boolean, scene:scene, sect?:section) => {
       console.log(`handling save`, isEdit, scene, sect)
@@ -166,13 +164,13 @@ const sceneMutation = useMutation({
     return(
       <Dialog.Root>
       <div className={cn}>
-        <EditScene section={section} onSave={handleSave} onCancel={handleCancel} className='absolute top-2 left-2'/>
+        {edit && <EditScene section={section} onSave={handleSave} onCancel={handleCancel} className='absolute top-2 left-2'/>}
         <p className="text-sm"><span>Essemble</span>: <span>{ens}</span></p>
         <div className="grid grid-cols-5 gap-4">
           {section.scenes.map((scene, i) => (
             <div key={i} className='relative'>
               <SceneCard scene={scene} />
-              <EditScene scene={scene} onCancel={handleCancel} onSave={handleSave} className='absolute top-0.5 right-0.5'/>
+              {edit && <EditScene scene={scene} onCancel={handleCancel} onSave={handleSave} className='absolute top-0.5 right-0.5'/>}
             </div>
             ))
           }

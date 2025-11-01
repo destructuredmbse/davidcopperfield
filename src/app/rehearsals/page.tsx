@@ -11,7 +11,6 @@ import { DataGrid, GridColDef, GridColumnHeaderParams, GridRenderCellParams, use
 import { getRehearsals, getRehearsal } from "../database/queries";
 import { character, ensemble, rehearsal } from "../components/types";
 import Rehearsal from '../components/rehearsal'
-import { Popover } from '@base-ui-components/react/popover';
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import MoreVertOutlinedIcon from '@mui/icons-material/MoreVertOutlined';
 import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
@@ -19,6 +18,7 @@ import { ClearIcon } from "../components/icons";
 import EditRehearsal from "../components/editrehearsal";
 import { CharacterLabel, EnsembleLabel } from "../components/labels";
 import { useUserAccess } from "../../contexts/UserAccessContext";
+import { Dialog } from "@base-ui-components/react/dialog";
 
 
 type rehearsal_summary = {
@@ -44,16 +44,7 @@ export default function Page() {
   return (
     <div className="flex flex-col items-centre w-full">
         <h2 className="text-red-800 text-3xl">Rehearsals</h2>
-        
-        {/* Debug component to show user access */}
-        <div className="bg-gray-100 p-4 rounded mb-4 text-sm">
-          <strong>User Access Debug:</strong>
-          <div>Roles: {rba.join(', ') || 'None'}</div>
-          <div>Can edit rehearsals: {edit ? 'Yes' : 'No'}</div>
-          <div>Admin: {isAdmin() ? 'Yes' : 'No'}</div>
-          <div>Loading access: {accessLoading ? 'Yes' : 'No'}</div>
-        </div>
-        
+                
         <SummaryTable edit={edit}/>
     </div>
 );
@@ -102,7 +93,7 @@ function SummaryTable({edit}: {edit:boolean}){
           <MoreVertOutlinedIcon fontSize='small' />
       ),
       renderCell: (params: GridRenderCellParams<any, Date>) => (
-        <CellPopover deleteRow={deleteRow} id={params.row.id} edit={edit}/>
+        <CellDialog deleteRow={deleteRow} id={params.row.id} edit={edit}/>
       )
     },
     {
@@ -190,22 +181,22 @@ function SummaryTable({edit}: {edit:boolean}){
 )
 }
 
-function CellPopover({id, deleteRow, edit}: {id:string, deleteRow:(rehearsalId: string) => void, edit:boolean}){
+function CellDialog({id, deleteRow, edit}: {id:string, deleteRow:(rehearsalId: string) => void, edit:boolean}){
   const [open, setOpen] = useState(false)
   
   return(
-    <Popover.Root open={open}>
+    <Dialog.Root open={open}>
         <Tooltip.Provider>
        <Tooltip.Root>
           <Tooltip.Trigger 
             className="flex size-8 items-center justify-center rounded-sm text-gray-900 select-none hover:bg-gray-100 focus-visible:bg-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-200 data-[popup-open]:bg-gray-100 focus-visible:[&:not(:hover)]:bg-transparent"
             render={
-              <Popover.Trigger 
+              <Dialog.Trigger 
                 onClick={() => setOpen(true)}
                 className="flex size-8 items-center justify-center text-gray-900 select-none"
                 >
                   <MoreVertOutlinedIcon aria-label="Select" className="size-4" />
-              </Popover.Trigger>
+              </Dialog.Trigger>
             }
             >
             </Tooltip.Trigger>
@@ -221,23 +212,18 @@ function CellPopover({id, deleteRow, edit}: {id:string, deleteRow:(rehearsalId: 
               </Tooltip.Portal>
             </Tooltip.Root>
           </Tooltip.Provider>
-      <Popover.Portal>
-        <Popover.Positioner sideOffset={8} align='start' side='bottom'>
-          <Popover.Popup className="origin-[var(--transform-origin)] rounded-lg bg-[canvas] px-6 py-4 text-gray-900 shadow-lg shadow-gray-200 outline outline-2 outline-gray-200 transition-[transform,scale,opacity] data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:shadow-none dark:-outline-offset-1 dark:outline-gray-300">
-            <Popover.Arrow className="data-[side=bottom]:top-[-8px] data-[side=left]:right-[-13px] data-[side=left]:rotate-90 data-[side=right]:left-[-13px] data-[side=right]:-rotate-90 data-[side=top]:bottom-[-8px] data-[side=top]:rotate-180">
-              <ArrowSvg />
-            </Popover.Arrow>
-              <div className="flex flex-row">
+      <Dialog.Portal>
+          <Dialog.Popup className="fixed top-1/2 left-1/2 z-40 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-gray-100 transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:outline-gray-300">
+              <div className="flex flex-row bg-white outline outline-red-800 rounded-md p-4">
                 <Rehearsal id={id} setRehearsalOpen={setOpen} deleteRow={deleteRow} edit={edit}/>
-                <Popover.Close className='size-4 justify-self-end'
+                <Dialog.Close className='size-5 justify-self-end text-red-800'
                     onClick={() => setOpen(false)}>
                   <ClearIcon />
-                </Popover.Close>
+                </Dialog.Close>
               </div>
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+          </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
 
   )
 }
@@ -246,24 +232,24 @@ function NewRehearsal(){
   const [editOpen, setEditOpen] = useState(false)
 
   return(
-    <Popover.Root open={editOpen}>
+    <Dialog.Root open={editOpen}>
       <Tooltip.Provider>
        <Tooltip.Root>
           <Tooltip.Trigger 
-            className="flex size-8 items-center justify-center rounded-sm text-gray-900 select-none hover:bg-gray-100 focus-visible:bg-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-200 data-[popup-open]:bg-gray-100 focus-visible:[&:not(:hover)]:bg-transparent"
+            className="flex size-8 items-center justify-center rounded-sm text-gray-900 select-none hover:bg-gray-100 focus-visible:bg-none focus-visible:outline focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-200 data-[popup-open]:bg-gray-100 focus-visible:[&:not(:hover)]:bg-transparent"
             render={
-              <Popover.Trigger 
+              <Dialog.Trigger 
                 className="absolute top-1 right-1 flex size-8 items-center justify-center text-gray-900 select-none"
                 onClick={() => setEditOpen(true)}
                 >
                   <AddCircleOutlineOutlinedIcon aria-label="New" className="size-4 text-red-800" />
-              </Popover.Trigger>
+              </Dialog.Trigger>
             }
             >
             </Tooltip.Trigger>
               <Tooltip.Portal>
                 <Tooltip.Positioner sideOffset={10}>
-                  <Tooltip.Popup className="flex origin-[var(--transform-origin)] flex-col rounded-md bg-[canvas] px-2 py-1 text-sm shadow-lg shadow-gray-200 outline outline-1 outline-gray-200 transition-[transform,scale,opacity] data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[instant]:duration-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:shadow-none dark:-outline-offset-1 dark:outline-gray-300">
+                  <Tooltip.Popup className="flex origin-[var(--transform-origin)] flex-col rounded-md bg-[canvas] px-2 py-1 text-sm shadow-lg shadow-gray-200 outline outline-gray-200 transition-[transform,scale,opacity] data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[instant]:duration-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:shadow-none dark:-outline-offset-1 dark:outline-gray-300">
                     <Tooltip.Arrow className="data-[side=bottom]:top-[-8px] data-[side=left]:right-[-13px] data-[side=left]:rotate-90 data-[side=right]:left-[-13px] data-[side=right]:-rotate-90 data-[side=top]:bottom-[-8px] data-[side=top]:rotate-180">
                       <ArrowSvg />
                     </Tooltip.Arrow>
@@ -273,49 +259,21 @@ function NewRehearsal(){
               </Tooltip.Portal>
             </Tooltip.Root>
           </Tooltip.Provider>
-      <Popover.Portal>
-        <Popover.Positioner sideOffset={8} align='start' side='bottom'>
-          <Popover.Popup className="origin-[var(--transform-origin)] rounded-lg bg-[canvas] px-6 py-4 text-gray-900 shadow-lg shadow-gray-200 outline outline-2 outline-gray-200 transition-[transform,scale,opacity] data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:shadow-none dark:-outline-offset-1 dark:outline-gray-300">
-            <Popover.Arrow className="data-[side=bottom]:top-[-8px] data-[side=left]:right-[-13px] data-[side=left]:rotate-90 data-[side=right]:left-[-13px] data-[side=right]:-rotate-90 data-[side=top]:bottom-[-8px] data-[side=top]:rotate-180">
-              <ArrowSvg />
-            </Popover.Arrow>
+      <Dialog.Portal>
+          <Dialog.Popup className="fixed shadow-md bg-white p-4 outline outline-red-800 top-1/2 left-1/2 z-40 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:outline-gray-300">
               <div className="flex flex-row">
                 <EditRehearsal setEditOpen={setEditOpen}/>
-                <Popover.Close className='size-4 justify-self-end' onClick={() => setEditOpen(false)}>
+                <Dialog.Close className='size-5 justify-self-end text-red-800'
+                    onClick={() => setEditOpen(false)}>
                   <ClearIcon />
-                </Popover.Close>
+                </Dialog.Close>
               </div>
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
+          </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
   )
 }
 
-// function CellTooltip({id}: {id:string}){
-
-//   return(
-//       <Tooltip.Provider>
-//        <Tooltip.Root>
-//           <Tooltip.Trigger asChild>
-//             <div className="flex size-8 items-center justify-center rounded-sm text-gray-900 select-none hover:bg-gray-100 focus-visible:bg-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-200 data-[popup-open]:bg-gray-100 focus-visible:[&:not(:hover)]:bg-transparent">
-//               <CellPopover id={id} deleteRow={deleteRow}/>
-//             </div>
-//           </Tooltip.Trigger>
-//           <Tooltip.Portal>
-//             <Tooltip.Positioner sideOffset={10}>
-//               <Tooltip.Popup className="flex origin-[var(--transform-origin)] flex-col rounded-md bg-[canvas] px-2 py-1 text-sm shadow-lg shadow-gray-200 outline outline-1 outline-gray-200 transition-[transform,scale,opacity] data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[instant]:duration-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:shadow-none dark:-outline-offset-1 dark:outline-gray-300">
-//                 <Tooltip.Arrow className="data-[side=bottom]:top-[-8px] data-[side=left]:right-[-13px] data-[side=left]:rotate-90 data-[side=right]:left-[-13px] data-[side=right]:-rotate-90 data-[side=top]:bottom-[-8px] data-[side=top]:rotate-180">
-//                   <ArrowSvg />
-//                 </Tooltip.Arrow>
-//                 Select to show the full details of a rehearsal.
-//               </Tooltip.Popup>
-//             </Tooltip.Positioner>
-//           </Tooltip.Portal>
-//         </Tooltip.Root>
-//       </Tooltip.Provider>
-//   )
-// }
 
 function ArrowSvg(props: React.ComponentProps<'svg'>) {
   return (

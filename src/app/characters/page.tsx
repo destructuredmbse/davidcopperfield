@@ -12,7 +12,7 @@ import { Characters } from "../components/characters";
 export default function Page() {
 
   return (
-      <main className="flex flex-col gap-2 w-4/5 row-start-2 items-center sm:items-start">
+      <main className="flex flex-col gap-2 row-start-2 items-center sm:items-start">
           <h2 className="text-red-800 text-3xl">Characters</h2>
           <div className="flex cols w-full">
             <div className="flex items-centre w-full">
