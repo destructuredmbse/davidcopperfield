@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-query'
 import { DataGrid, GridColDef, GridColumnHeaderParams, GridRenderCellParams, useGridApiRef } from '@mui/x-data-grid';
 import { getRehearsals, getRehearsal } from "../database/queries";
-import { character, ensemble, rehearsal } from "../components/types";
+import { character, ensemble, rehearsal, scene } from "../components/types";
 import Rehearsal from '../components/rehearsal'
 import { Tooltip } from '@base-ui-components/react/tooltip';
 import MoreVertOutlinedIcon from '@mui/icons-material/MoreVertOutlined';
@@ -26,15 +26,18 @@ type rehearsal_summary = {
   date: string,
   times: string,
   venue:string
-  aims: string,
+  scenes: scene[],
   called: character[],
-  ensemble: ensemble
+  ensembles: ensemble[]
 }
 
 
 
 export default function Page() {
-
+    const [dialogOpen, setDialogOpen] = useState(false)
+    const [dialogType, setDialogType] = useState<'edit'|'view'|'new'>('view')
+    const [rehearsal, setRehearsal] = useState<rehearsal|undefined>()
+    const [isLoading, setIsLoading] = useState(false)
    const { isAdmin, hasAnyRole, isLoading: accessLoading, rba } = useUserAccess()
   
    
@@ -42,17 +45,51 @@ export default function Page() {
   const edit = hasAnyRole(['rehearsals', 'full'])
 
   return (
-    <div className="flex flex-col items-centre w-full">
-        <h2 className="text-red-800 text-3xl">Rehearsals</h2>
-                
-        <SummaryTable edit={edit}/>
-    </div>
+    <Dialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
+      <div className="flex flex-col items-centre w-full">
+          <h2 className="text-red-800 text-3xl">Rehearsals</h2>
+                  
+        {edit && <div className="relative h-4 p-4">
+          <NewRehearsal setDialogOpen={setDialogOpen} setDialogType={setDialogType}/>
+        </div>}
+          <SummaryTable 
+            setDialogOpen={setDialogOpen}
+            setIsLoading={setIsLoading}
+            setRehearsal={setRehearsal}
+            setDialogType={setDialogType}
+            edit={edit}/>
+      </div>
+      <Dialog.Portal>
+          <Dialog.Popup className="fixed top-1/2 left-1/2 z-40 max-w-9/10 -translate-x-1/2 -translate-y-1/2 rounded-lg bg-gray-100 transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:outline-gray-300">
+              <div className="flex flex-row bg-white outline outline-red-800 rounded-md p-4">
+                {dialogType === 'view' && rehearsal?
+                <Rehearsal 
+                  rehearse={rehearsal as rehearsal} 
+                  setDialogType={setDialogType} 
+                  setRehearsalOpen={setDialogOpen} 
+                  setDialogOpen={setDialogOpen}
+                  edit={edit}/>:
+                dialogType === 'edit'?<EditRehearsal rehearsal={rehearsal} setEditOpen={setDialogOpen}/>:
+                <EditRehearsal setEditOpen={setDialogOpen}/>}
+                <Dialog.Close className='size-5 justify-self-end text-red-800'
+                    onClick={() => setDialogOpen(false)}>
+                  <ClearIcon />
+                </Dialog.Close>
+              </div>
+          </Dialog.Popup>
+      </Dialog.Portal>
+    </Dialog.Root>
 );
 
 }
 
-function SummaryTable({edit}: {edit:boolean}){
-
+function SummaryTable({setRehearsal, setIsLoading, setDialogOpen, setDialogType, edit}: 
+  {edit:boolean
+    setRehearsal: (rehearsal:rehearsal) => void
+    setIsLoading: (isLoading:boolean) => void
+    setDialogOpen: (dialogOpen:boolean) => void
+    setDialogType: (dialogType:'edit'|'view'|'new') => void
+  }){
   const apiRef = useGridApiRef()
   const {data: rehearsals, isLoading} = useQuery({ queryKey: [`rehearsals`], queryFn: () => getRehearsals() })
   const rows = useMemo(() => {
@@ -62,25 +99,10 @@ function SummaryTable({edit}: {edit:boolean}){
             date:r._day, 
             times:r.times, 
             venue:`${r.venues[0].name}`, 
-            aims:`${r.scenes.map((s) => `${s.name} (${s.status})`).join(', ')}`,
+            scenes: r.scenes,
             called: r.called,
-            ensemble: r.ensemble} as rehearsal_summary})},
+            ensembles: r.ensembles} as rehearsal_summary})},
     [isLoading, rehearsals])
-
-  const deleteRow = (rehearsalId:string) => {  
-    apiRef.current?.updateRows([{ id: rehearsalId, _action: 'delete' }]);
-  };
-
- const addRow = (r:rehearsal) => {
-    const row = {id:r.id, 
-            date:r._day, 
-            times:r.times, 
-            venue:`${r.venues[0].name}`, 
-            aims:`${r.scenes.map((s) => `${s.name} (${s.status})`).join(', ')}`,
-            called: r.called,
-            ensemble: r.ensemble} as rehearsal_summary
-    apiRef.current?.updateRows([row]);
-  };
 
 
 
@@ -93,7 +115,13 @@ function SummaryTable({edit}: {edit:boolean}){
           <MoreVertOutlinedIcon fontSize='small' />
       ),
       renderCell: (params: GridRenderCellParams<any, Date>) => (
-        <CellDialog deleteRow={deleteRow} id={params.row.id} edit={edit}/>
+        <CellDialog 
+          id={params.row.id} 
+          setRehearsal={setRehearsal}
+          setDialogOpen={setDialogOpen} 
+          setIsLoading={setIsLoading}
+          setDialogType={setDialogType}
+          edit={edit}/>
       )
     },
     {
@@ -119,7 +147,7 @@ function SummaryTable({edit}: {edit:boolean}){
     {
       headerName: 'Venue',
       field: 'venue',
-      width: 100,
+      width: 250,
       renderHeader: (params: GridColumnHeaderParams) => (
         <span className="font-semibold">
           {params.colDef.headerName}
@@ -128,19 +156,24 @@ function SummaryTable({edit}: {edit:boolean}){
 
     },
     {
-      headerName: 'Aims',
-      field: 'aims',
-      width: 200,
+      headerName: 'Scenes',
+      field: 'scenes',
+      width: 100,
       renderHeader: (params: GridColumnHeaderParams) => (
-        <span className="font-semibold">
+        <span className="font-semibold text-wrap">
           {params.colDef.headerName}
         </span>
       ),
+      renderCell: (params: GridRenderCellParams<any, scene[]>) => (
+        params.value && <div className="text-gray-900 text-wrap">
+          {params.value.map((v, i) => <div key={i} ><span>{v.name}</span>{i + 1 < (params.value as scene[]).length && <br/>}</div>)}
+          </div>
+      )
     },
     {
       headerName: 'Called',
       field: 'called',
-      width:450,
+      flex: 1,
       renderHeader: (params: GridColumnHeaderParams) => (
         <span className="font-semibold">
           {params.colDef.headerName}
@@ -154,45 +187,56 @@ function SummaryTable({edit}: {edit:boolean}){
 
     },
     {
-      headerName: 'Ensemble',
-      field: 'ensemble',
-      width: 150,
+      headerName: 'Ensembles',
+      field: 'ensembles',
+      width: 200,
       renderHeader: (params: GridColumnHeaderParams) => (
         <span className="font-semibold">
           {params.colDef.headerName}
         </span>
       ),
-      renderCell: (params: GridRenderCellParams<any, ensemble>) => (
-        params.value && <EnsembleLabel short={true} ensemble={params.value as ensemble} />
+      renderCell: (params: GridRenderCellParams<any, ensemble[]>) => (
+        params.value && <div className="text-gray-900 text-wrap">
+          {params.value.map((v, i) => <div key={i}><span><EnsembleLabel ensemble={v as ensemble}/></span>{i + 1 < (params.value as ensemble[]).length && <br/>}</div>)}
+          </div>
       )
 
     }
   ]
 
   return (
-    <div className="flex flex-col gap-2 w-9/10">
-      {edit && <div className="relative h-4 p-4">
-        <NewRehearsal />
-      </div>}
+    <div className="flex flex-col gap-2 w-full pr-6">
       <div className='pt-2'>
-        <DataGrid apiRef={apiRef} columns={columns} rows={rows || []} density='compact' loading={isLoading}/>
+        <DataGrid apiRef={apiRef} columns={columns} getRowHeight={() => 'auto'} rows={rows || []} density='compact' loading={isLoading}/>
       </div>
   </div>
 )
 }
 
-function CellDialog({id, deleteRow, edit}: {id:string, deleteRow:(rehearsalId: string) => void, edit:boolean}){
+function CellDialog({id, setRehearsal, setIsLoading, setDialogOpen, setDialogType, edit}: 
+  { id:string, 
+    setRehearsal:(rehearsal:rehearsal) => void,
+    setIsLoading: (isLoading: boolean) => void
+    setDialogOpen: (dialogOpen:boolean) => void,
+    setDialogType: (dialogType:'edit'|'view'|'new') => void
+    edit:boolean})
+    {
   const [open, setOpen] = useState(false)
+
+  const {data: rehearsal, isLoading} = useQuery({ queryKey: [`researsal_${id}`], queryFn: () => getRehearsal(id) })
+  
+  if(!isLoading && rehearsal){setRehearsal(rehearsal); setIsLoading(false)}
+  else setIsLoading(true)
   
   return(
-    <Dialog.Root open={open}>
-        <Tooltip.Provider>
+    <div>
+      <Tooltip.Provider>
        <Tooltip.Root>
           <Tooltip.Trigger 
             className="flex size-8 items-center justify-center rounded-sm text-gray-900 select-none hover:bg-gray-100 focus-visible:bg-none focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-200 data-[popup-open]:bg-gray-100 focus-visible:[&:not(:hover)]:bg-transparent"
             render={
               <Dialog.Trigger 
-                onClick={() => setOpen(true)}
+                onClick={() => {setDialogType('view'); setDialogOpen(true)}}
                 className="flex size-8 items-center justify-center text-gray-900 select-none"
                 >
                   <MoreVertOutlinedIcon aria-label="Select" className="size-4" />
@@ -212,27 +256,17 @@ function CellDialog({id, deleteRow, edit}: {id:string, deleteRow:(rehearsalId: s
               </Tooltip.Portal>
             </Tooltip.Root>
           </Tooltip.Provider>
-      <Dialog.Portal>
-          <Dialog.Popup className="fixed top-1/2 left-1/2 z-40 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-gray-100 transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:outline-gray-300">
-              <div className="flex flex-row bg-white outline outline-red-800 rounded-md p-4">
-                <Rehearsal id={id} setRehearsalOpen={setOpen} deleteRow={deleteRow} edit={edit}/>
-                <Dialog.Close className='size-5 justify-self-end text-red-800'
-                    onClick={() => setOpen(false)}>
-                  <ClearIcon />
-                </Dialog.Close>
-              </div>
-          </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
+    </div>
 
   )
 }
 
-function NewRehearsal(){
-  const [editOpen, setEditOpen] = useState(false)
+function NewRehearsal({setDialogOpen, setDialogType}:
+  {setDialogOpen:(dialogOpen:boolean) => void
+    setDialogType: (v:'edit'|'new'|'view') => void
+  }){
 
   return(
-    <Dialog.Root open={editOpen}>
       <Tooltip.Provider>
        <Tooltip.Root>
           <Tooltip.Trigger 
@@ -240,7 +274,7 @@ function NewRehearsal(){
             render={
               <Dialog.Trigger 
                 className="absolute top-1 right-1 flex size-8 items-center justify-center text-gray-900 select-none"
-                onClick={() => setEditOpen(true)}
+                onClick={() => {setDialogType('new'); setDialogOpen(true)}}
                 >
                   <AddCircleOutlineOutlinedIcon aria-label="New" className="size-4 text-red-800" />
               </Dialog.Trigger>
@@ -259,18 +293,6 @@ function NewRehearsal(){
               </Tooltip.Portal>
             </Tooltip.Root>
           </Tooltip.Provider>
-      <Dialog.Portal>
-          <Dialog.Popup className="fixed shadow-md bg-white p-4 outline outline-red-800 top-1/2 left-1/2 z-40 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:outline-gray-300">
-              <div className="flex flex-row">
-                <EditRehearsal setEditOpen={setEditOpen}/>
-                <Dialog.Close className='size-5 justify-self-end text-red-800'
-                    onClick={() => setEditOpen(false)}>
-                  <ClearIcon />
-                </Dialog.Close>
-              </div>
-          </Dialog.Popup>
-      </Dialog.Portal>
-    </Dialog.Root>
   )
 }
 

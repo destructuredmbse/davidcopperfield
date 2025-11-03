@@ -7,8 +7,12 @@ export function CharacterLabel({character, short, className} : {character:charac
   <span 
     data-unavailable={character.played_by && character.played_by.some((p) => 'available' in p && !p.available)} 
     className={twMerge(className, 'data-[unavailable=true]:!text-red-600')}>
-    {character.name} 
-    {!short && character.played_by && character.played_by.length > 0?<span> ({character.played_by.map((p, i) => <PersonLabel key={i} person={p} />)})</span>:''}
+    <span>{character.name} </span>
+    {!short && character.played_by && 
+      character.played_by.length === 1 && <span> (<PersonLabel person={character.played_by[0]} />)</span>}
+    {!short && character.played_by && 
+      character.played_by.length > 1 && 
+      <span> ({character.played_by.filter(p => !p.available).map((p, i) => <PersonLabel key={i} person={p} />)})</span>}
     </span>
  )
 }

@@ -21,7 +21,7 @@ export default function SceneCard({scene, ensemble}: {scene:scene, ensemble?:boo
     }
 
     return(
-      <div className='size-min-48 grow p-1 border rounded-lg shadow-xl bg-gray-100'>
+      <div className='min-w-40 grow p-1 my-2 border rounded-lg shadow-xl bg-gray-100 break-inside-avoid-column' >
         <h3 className="text-sm font-bold">{n}</h3>
         {scene.pages?<p className='text-xs'><span className=''>Pages</span> <span className='text-gray-500'>{scene.pages}</span></p>:''}
         <p className={`text-xs font-semibold ${stCol}`}>{scene.status}</p>

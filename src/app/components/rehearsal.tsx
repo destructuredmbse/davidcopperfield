@@ -8,7 +8,6 @@ import Skeleton from "@mui/material/Skeleton"
 import { Dialog } from "@base-ui-components/react/dialog"
 import { AlertDialog } from '@base-ui-components/react/alert-dialog';
 import { useState } from "react"
-import { Popover } from "@base-ui-components/react/popover"
 import { ArrowSvg, ClearIcon } from "./icons"
 import EditRehearsal from "./editrehearsal"
 
@@ -18,30 +17,33 @@ return `delete rehearsal filter .id = <uuid>"${rehearsalId as string}"`
 
 
 
-export default function Rehearsal({id, setRehearsalOpen, deleteRow, edit}:{id:string, setRehearsalOpen:React.Dispatch<React.SetStateAction<boolean>>, edit:boolean, deleteRow?:((rehearsalId: string) => void)}){
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [editOpen, setEditOpen] = useState(false)
-        const queryClient = useQueryClient()
+export default function Rehearsal({rehearse, setRehearsalOpen, setDialogOpen, setDialogType, isLoading, edit}:
+  {rehearse:rehearsal, 
+    setRehearsalOpen:React.Dispatch<React.SetStateAction<boolean>>, 
+    isLoading?:boolean,
+    setDialogOpen: (dialogOpen: boolean) => void,
+    setDialogType: (dialogType:'edit'|'view'|'new') => void,
+    edit:boolean, 
+  }){
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+                const queryClient = useQueryClient()
 
     const deleteRehearsalMutation = useMutation({
         mutationFn: (updateQ:string) => {return performUpdate(updateQ)},
         onSuccess: (data:any) => {
-            {console.log(JSON.stringify(data));}
             queryClient.invalidateQueries({ queryKey: ['rehearsals'] })
         },
         onError: (error) => {
             console.error('Failed to delete rehearsal:', error)
         }
     })
-    const query = useQuery({ queryKey: [`researsal_${id}`], queryFn: () => getRehearsal(id) })
-    const { data, isLoading} = query
-    const rehearse = data as rehearsal
+  
 
-    console.log(JSON.stringify(rehearse, null, `\t`))
-
-    const cn = `border rounded-lg p-2 w-min-40 grow shadow-xl bg-gray-100`
+    const cn = `border rounded-lg p-2 w-min-60 grow shadow-xl bg-gray-100`
 
   return (
+    <AlertDialog.Root open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+
     <div id='rehearsal-card'>
       {isLoading?<Skeleton height={230} width={850} />:
       <div className="flex flex-col relative">
@@ -55,40 +57,43 @@ export default function Rehearsal({id, setRehearsalOpen, deleteRow, edit}:{id:st
                 <span className="font-semibold">Location(s):</span> <span>{`${rehearse.venues.map((v) => `${v.name} ${v.postcode || ''}`).join(', ')}`}</span>
             </p>
             <div className="flex flex-row gap-2 pt-4">
+              <div className="columns-2">
                 {rehearse.scenes.map((s, i) => <SceneCard key={i} scene={s} ensemble={true} />)}  
-                <CalledList called={rehearse.called}  ensemble={rehearse.ensemble} className={`${cn}`} />
-                <div className="grid grid-cols-2 gap-2">
-                    <PeopleList key="1" className={cn} job='Creatives' people={rehearse.creative as person[]} />
-                    <PeopleList key="2" className={cn} job='Assistants' people={rehearse.assistants as person[]} />
-                    <PeopleList key="3" className={cn} job='Support' people={rehearse.support as person[]} />
-                    <PeopleList key="4" className={cn} job='Volunteers' people={rehearse.volunteers as person[]} />
-                    <PeopleList key="5" className={cn} job='Students' people={rehearse.students as person[]} />
-                </div>
-                <EquipmentList equip={rehearse.equipment || []} className={cn}/>
-                <div className="grid grid-cols-1 content-start">
-                    <BSL bsl={rehearse.bsl_interpreter} />
-                    <Notes notes={rehearse.notes || []} className=""/>
-                </div>
+              </div>
+              <CalledList called={rehearse.called}  ensembles={rehearse.ensembles} className='min-w-40 p-1 border rounded-lg shadow-xl bg-gray-100' />
+              <div className="grid grid-cols-2 gap-2 min-w-48">
+                  <PeopleList key="1" className='min-w-24 p-1 border rounded-lg shadow-xl bg-gray-100' job='Creatives' people={rehearse.creative as person[]} />
+                  <PeopleList key="2" className='min-w-24 p-1 border rounded-lg shadow-xl bg-gray-100' job='Assistants' people={rehearse.assistants as person[]} />
+                  <PeopleList key="3" className='min-w-24 p-1 border rounded-lg shadow-xl bg-gray-100' job='Support' people={rehearse.support as person[]} />
+                  <PeopleList key="4" className='min-w-24 p-1 border rounded-lg shadow-xl bg-gray-100' job='Volunteers' people={rehearse.volunteers as person[]} />
+                  <PeopleList key="5" className='min-w-24 p-1 border rounded-lg shadow-xl bg-gray-100' job='Students' people={rehearse.students as person[]} />
+              </div>
+              <EquipmentList equip={rehearse.equipment || []} className='min-w-40 p-1 border rounded-lg shadow-xl bg-gray-100'/>
+              <div className="grid grid-cols-1 content-start min-w-40">
+                  <BSL bsl={rehearse.bsl_interpreter} />
+                  <Notes notes={rehearse.notes || []} className=""/>
+              </div>
             </div>
         </div>
         {edit && <div className="flex flex-row gap-1 pt-2 justify-end">
-            <button 
-                onClick={() => setDialogOpen(true)}
-                className="text-xs w-20 text-red-700 border border-red-700 rounded">
+            <AlertDialog.Trigger 
+                onClick={() => {console.log(`deleting ... ${deleteDialogOpen}`); setDeleteDialogOpen(true); console.log(`dialog open ... ${deleteDialogOpen}`);}}
+                className="text-xs w-20 text-red-700 border border-red-700 rounded"
+                >
                 delete
-            </button>
-            <button 
-                onClick={() => {setEditOpen(true)}}
+            </AlertDialog.Trigger>
+            <Dialog.Trigger 
+                onClick={() => {setDialogType('edit'); setDialogOpen(true);}}
                 className="text-xs w-20 text-green-800 border border-green-800 rounded">
                 edit
-            </button>
+            </Dialog.Trigger>
             </div>}
         </div>}
-    
-    <AlertDialog.Root open={dialogOpen} onOpenChange={setDialogOpen}>
+    </div>
+
       <AlertDialog.Portal>
         <AlertDialog.Backdrop className="fixed inset-0 min-h-dvh bg-black opacity-20 transition-all duration-150 data-[ending-style]:opacity-0 data-[starting-style]:opacity-0 dark:opacity-70 supports-[-webkit-touch-callout:none]:absolute" />
-        <AlertDialog.Popup className="fixed top-1/2 left-1/2 -mt-8 w-96 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-gray-50 p-6 text-gray-900 outline outline-1 outline-gray-200 transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:outline-gray-300">
+        <AlertDialog.Popup className="z-50 fixed top-1/2 left-1/2 -mt-8 w-96 max-w-[calc(100vw-3rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-gray-50 p-6 text-gray-900 outline outline-gray-200 transition-all duration-150 data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:outline-gray-300">
           <AlertDialog.Title className="-mt-1.5 mb-1 text-lg font-medium">
             Delete rehearsal?
           </AlertDialog.Title>
@@ -102,9 +107,8 @@ export default function Rehearsal({id, setRehearsalOpen, deleteRow, edit}:{id:st
               Cancel
             </AlertDialog.Close>
             <AlertDialog.Close
-                onClick={() => {console.log(`${deleteQuery(id)}`);
-                                deleteRehearsalMutation.mutate(deleteQuery(id))
-                                //deleteRow(id)
+                onClick={() => {console.log(`${deleteQuery(rehearse.id)}`);
+                                deleteRehearsalMutation.mutate(deleteQuery(rehearse.id))
                                 setRehearsalOpen(false)
                             }}                
                 className="flex h-10 items-center justify-center rounded-md border border-gray-200 bg-gray-50 px-3.5 text-sm font-medium text-red-800 select-none hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-1 focus-visible:outline-blue-800 active:bg-gray-100">
@@ -114,28 +118,6 @@ export default function Rehearsal({id, setRehearsalOpen, deleteRow, edit}:{id:st
         </AlertDialog.Popup>
       </AlertDialog.Portal>
     </AlertDialog.Root>
-
-    <Popover.Root open={editOpen}>
-      <Popover.Portal>
-        <Popover.Positioner sideOffset={8} align='start' side='bottom'>
-          <Popover.Popup className="origin-[var(--transform-origin)] rounded-lg bg-[canvas] px-6 py-4 text-gray-900 shadow-lg shadow-gray-200 outline outline-2 outline-gray-200 transition-[transform,scale,opacity] data-[ending-style]:scale-90 data-[ending-style]:opacity-0 data-[starting-style]:scale-90 data-[starting-style]:opacity-0 dark:shadow-none dark:-outline-offset-1 dark:outline-gray-300">
-            <Popover.Arrow className="data-[side=bottom]:top-[-8px] data-[side=left]:right-[-13px] data-[side=left]:rotate-90 data-[side=right]:left-[-13px] data-[side=right]:-rotate-90 data-[side=top]:bottom-[-8px] data-[side=top]:rotate-180">
-              <ArrowSvg />
-            </Popover.Arrow>
-              <div className="flex flex-row">
-                <EditRehearsal 
-                    rehearsal={rehearse} setEditOpen={setEditOpen}
-                    />
-                <Popover.Close className='size-4 justify-self-end'
-                    onClick={() => {setEditOpen(false); setRehearsalOpen(false)}}>
-                  <ClearIcon />
-                </Popover.Close>
-              </div>
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
-</div>
     
   )
 
@@ -202,18 +184,16 @@ function EquipmentList({equip, className}: {equip:equipment[], className:string}
     )
 }
 
-function CalledList({called, ensemble, className}: {called:character[], ensemble?:ensemble, className?:string}){
+function CalledList({called, ensembles, className}: {called:character[], ensembles:ensemble[], className?:string}){
 
-    let charact = called.map((c) => `${c.name} (${c.played_by.map((p) => `${p.first_name} ${p.last_name}`).join(', ')})`)
-    charact = ensemble?[...charact, ensLabel(ensemble)]:charact
     
     return (
     <div className={className}>
         <div className="text-xs">
             <p className="font-semibold">Called</p>
             <ul className="text-gray-900">
-                {called.length > 0?called.map((c, i) => <li key={i}><CharacterLabel character={c} /></li>):<li>No characters called</li>}
-                {ensemble?<li><EnsembleLabel ensemble={ensemble} /></li>:''}
+                {called.length > 0?called.map((c) => <li key={c.id}><CharacterLabel character={c} /></li>):<li>No characters called</li>}
+                {ensembles.length > 0?ensembles.map((e) => <li key={e.id}><EnsembleLabel ensemble={e} /></li>):<li>No essemble called</li>}
             </ul>
         </div>
     </div>

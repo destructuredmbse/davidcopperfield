@@ -121,7 +121,7 @@ select default::rehearsal {
     name,
     status,
     @pages
-  },
+  } order by .name,
   called: {
     id,
     name,
@@ -133,7 +133,7 @@ select default::rehearsal {
       available := count(.availability filter .date = rehearsal.day.date) > 0
     }
   },
-  ensemble: {
+  ensembles: {
     id,
     name,
     number := count(.members),
@@ -202,15 +202,11 @@ const rehearsalQ = `
               last_name,
               photo,
               available := count(.availability filter .date = rehearsal.day.date) > 0
-    }
+          }
         },
-    ensemble: {
+        ensemble: {
         id,
         name
-        },
-    section: {
-        id,
-        name        
         }
     },
     equipment: {
@@ -238,17 +234,14 @@ const rehearsalQ = `
         id,
         first_name
     },
-    ensemble: {
+    ensembles: {
         id,
         name,
         number := count(.members),
         available := count(.members filter count(.availability filter .date = rehearsal.day.date) > 0),
-        subensembles: {
-            id,
-            name
         }
     }
-    }
+    
     filter .id = <uuid>uuid
 `
 
@@ -368,6 +361,59 @@ select default::scene {
       }
     }
 filter .name = name
+`
+
+const scenesCharacterAvailabilityQ = `
+with selected_scenes := (select scene filter .name in array_unpack(<array<str>>$names))
+  select distinct selected_scenes.characters
+  {
+    id,
+    name,
+    played_by: {
+      id,
+      first_name,
+      last_name,
+      photo,
+      available := count(.availability filter .date = <cal::local_date><str>$date) > 0
+    }
+  }
+  `
+
+const scenesEnsembleAvailabilityQ = `
+with selected_scenes := (select scene filter .name in array_unpack(<array<str>>$names))
+  select distinct selected_scenes.ensemble
+    {
+      id,
+      name,
+      number := count(.members),
+      available := count(.members filter count(.availability filter .date = <cal::local_date><str>$date) > 0),
+    }  
+  `
+
+const scenesAvailabilityQ = `
+with names := array_unpack(<array<str>>$names), date := <str>$date
+select default::scene {
+  id,
+  name,
+  characters: {
+    id,
+    name,
+    played_by: {
+      id,
+      first_name,
+      last_name,
+      photo,
+      available := count(.availability filter .date = <cal::local_date>date) > 0
+    }
+  },
+    ensemble:{
+      id,
+      name,
+      number := count(.members),
+      available := count(.members filter count(.availability filter .date = <cal::local_date>date) > 0),
+      }
+    }
+filter .name in names
 `
 
 const ensemblesQ = `
@@ -619,12 +665,13 @@ export async function performUpdate(updateQ:string){
 
 }
 
-export async function getSceneAvailability(scene_name:string|undefined, date:string):Promise<scene|undefined> {
+export async function getScenesAvailability(scene_names:string[]|undefined, date:string):Promise<(character|ensemble)[]> {
   const client = createClient()
-  if(!client) {return undefined}
-  if(!scene_name || !date) return undefined
-  const _scene = await client.query<scene>(sceneAvailabilityQ, {name:scene_name, date:date})
-    return _scene.length > 0?_scene[0]:undefined
+  if(!client) {return []}
+  if(!scene_names || !date) return []
+  const chars = await client.query<scene>(scenesCharacterAvailabilityQ, {names:scene_names, date:date})
+  const ens = await client.query<ensemble>(scenesEnsembleAvailabilityQ, {names:scene_names, date:date})
+  return [...chars, ...ens]
 }
 
 

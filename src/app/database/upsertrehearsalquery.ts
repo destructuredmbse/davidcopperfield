@@ -2,7 +2,7 @@ import { person, scene, location, day, time, character, ensemble, equipment } fr
 
 
 export function upsertRehearsalQ(
-{ rehearsal, aim, teams, equipment, location, day, time, called, ensemble, bsl, notes, pages }: { rehearsal?:string, aim: scene; teams: Map<string, person[]>; equipment: equipment[]; location: location; day: day; time: time; called: character[]; ensemble?: ensemble; bsl?: person; notes?: string; pages?:string },
+{ rehearsal, aim, teams, equipment, location, day, time, called, ensembles, bsl, notes, pages }: { rehearsal?:string, aim: scene[]; teams: Map<string, person[]>; equipment: equipment[]; location: location; day: day; time: time; called: character[]; ensembles?: ensemble[]; bsl?: person; notes?: string; pages?:string },
 ):string
 {
     
@@ -27,10 +27,10 @@ export function upsertRehearsalQ(
     ${volunteer?.length > 0?`volunteers := (select detached person filter .id in {${volunteer.map((p) => `<uuid>'${p.id}'`).join(', ')}}),`:''}
     ${assistant?.length > 0?`assistants := (select detached person filter .id in {${assistant.map((p) => `<uuid>'${p.id}'`).join(', ')}}),`:''}
     ${student?.length > 0?`students := (select detached person filter .id in {${student.map((p) => `<uuid>'${p.id}'`).join(', ')}}),`:''}
-    scenes := (select detached scene ${pages?`{@pages := '${pages}'} `:''}filter .id = <uuid>'${aim.id as string}'),
+    scenes := (select detached scene filter .id in {${aim.map(s => `<uuid>'${s.id as string}'`).join(', ')}}),
     ${equipment?.length > 0?`equipment := (select equipment filter .id in {${equipment.map((e) => `<uuid>'${e.id}'`).join(', ')}}),`:''}
     called := (select character filter .id in {${called.map((c) => `<uuid>'${c.id}'`).join(', ')}}),
-    ${ensemble?`ensemble := (select ensemble filter .id = <uuid>'${ensemble.id as string}'),`:''}
+    ${ensembles?`ensembles := (select ensemble filter .id in {${ensembles.map((e:ensemble) => `<uuid>'${e.id as string}'`).join(', ')}}),`:''}
     }  
     `
 }

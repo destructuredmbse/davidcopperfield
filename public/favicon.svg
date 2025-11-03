@@ -1,0 +1,25 @@
+<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark background -->
+  <rect width="16" height="16" fill="#2C1810"/>
+  
+  <!-- Main mask shape -->
+  <ellipse cx="8" cy="9" rx="5.5" ry="6.5" fill="#D4A574"/>
+  
+  <!-- Hair/forehead -->
+  <path d="M 3.5 4 Q 5 2.5 6.5 3 Q 8 2 9.5 3 Q 11 2.5 12.5 4 Q 11.5 5 10 5.5 Q 8 4.5 6 5.5 Q 4.5 5 3.5 4" fill="#C19660"/>
+  
+  <!-- Eyes -->
+  <ellipse cx="6" cy="7.5" rx="0.8" ry="1" fill="#3A2817"/>
+  <ellipse cx="10" cy="7.5" rx="0.8" ry="1" fill="#3A2817"/>
+  
+  <!-- Nose -->
+  <path d="M 8 8.5 L 7.8 10 L 8.2 10 Z" fill="#C19660"/>
+  <ellipse cx="7.7" cy="10.1" rx="0.2" ry="0.15" fill="#3A2817"/>
+  <ellipse cx="8.3" cy="10.1" rx="0.2" ry="0.15" fill="#3A2817"/>
+  
+  <!-- Mouth -->
+  <ellipse cx="8" cy="11.5" rx="1.2" ry="0.8" fill="#3A2817"/>
+  
+  <!-- Beard -->
+  <ellipse cx="8" cy="13.5" rx="3" ry="1.8" fill="#C19660"/>
+</svg>

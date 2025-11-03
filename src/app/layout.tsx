@@ -26,10 +26,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const metadata: Metadata = {
-  title: "DC Management App",
-  description: "Created by Paul King",
-};
+// Note: Metadata should be exported from a Server Component, not Client Component
+// For client components, we'll handle the title in the Head component
 
 const queryClient = new QueryClient();
 

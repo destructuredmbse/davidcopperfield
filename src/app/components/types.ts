@@ -74,7 +74,7 @@ export interface rehearsal{
     venues:location[],
     called:character[],
     scenes:scene[],
-    ensemble:ensemble,
+    ensembles:ensemble[],
     creative?:person[],
     volunteers?:person[],
     aims?: string,

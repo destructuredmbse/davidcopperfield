@@ -6,6 +6,7 @@ import { personLabel } from "./helpers";
 
 export default function BSLSelector({selected, bsl, setSelectedBSL}:{selected?:person, bsl:person[], setSelectedBSL: React.Dispatch<React.SetStateAction<person|undefined>>}){
   const id = React.useId();
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
 
   return (
       <Combobox.Root items={[{id:'1', first_name:'Not required', _role:'bsl interpreter'}, ...bsl]} 
@@ -37,7 +38,7 @@ export default function BSLSelector({selected, bsl, setSelectedBSL}:{selected?:p
       </div>
 
       <Combobox.Portal>
-        <Combobox.Positioner className="outline-none" sideOffset={4}>
+        <Combobox.Positioner className="z-50 outline-none" sideOffset={4} anchor={containerRef.current}>
           <Combobox.Popup className="w-[var(--anchor-width)] max-h-[min(var(--available-height),23rem)] max-w-[var(--available-width)] origin-[var(--transform-origin)] overflow-y-auto scroll-pt-2 scroll-pb-2 overscroll-contain rounded-md bg-[canvas] py-2 text-gray-900 text-xs shadow-lg shadow-gray-200 transition-[transform,scale,opacity] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 dark:shadow-none ">
             <Combobox.Empty className="px-2 py-1 text-xs leading-4 text-gray-600 empty:m-0 empty:p-0">
               No BSL interpreters found.

@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react"
 import { character, person, scene, equipment, location, ensemble, day, time, rehearsal } from "./types"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { getAllScenes, getDays, getEquipment, getLocations, getPeople, getSceneAvailability, insertReheasal } from "../database/queries"
+import { getAllScenes, getDays, getEquipment, getLocations, getPeople, getScenesAvailability, insertReheasal } from "../database/queries"
 import { Form } from "@base-ui-components/react/form"
 import { Field } from "@base-ui-components/react/field"
 import { Fieldset } from "@base-ui-components/react/fieldset"
@@ -13,7 +13,7 @@ import CharactersSelector from "./charactersselector"
 import EquipmentSelector from "./equipmentselector"
 import { upsertRehearsalQ } from "../database/upsertrehearsalquery"
 import PeopleSelector from "./peopleselector"
-import SceneSelector from "./sceneselector"
+import SceneSelector from "./sceneselector2"
 import PagesSelector from "./pagesselector"
 
 export default function EditRehearsal(
@@ -24,8 +24,7 @@ export default function EditRehearsal(
       setEditOpen?: (open:boolean) =>void,
       onSuccess?: () => void}){
   const [sceneName, setSceneName] = useState<string>(rehearsal?.scenes[0]?.name || '')
-  const [selectedScene, setSelectedScene] = useState<scene|undefined>(rehearsal?.scenes?rehearsal.scenes[0]:undefined)
-  const [selectedPages, setSelectedPages] = useState<string>(rehearsal?.scenes?.[0]?.['@pages'] || '')
+  const [selectedScenes, setSelectedScenes] = useState<scene[]>(rehearsal?.scenes?rehearsal.scenes:[])
   const [selectedTeams, setSelectedTeams] = 
     useState<Map<string, person[]>>(new Map([['creative', rehearsal?.creative || []], 
       ['support',rehearsal?.support || []], 
@@ -35,10 +34,10 @@ export default function EditRehearsal(
   const [selectedCalled, setSelectedCalled] = useState<character[]>(rehearsal?.called || [])
   const [selectedEquipment, setSelectedEquipment] = useState<equipment[]>(rehearsal?.equipment || [])
   const [selectedLocation, setSelectedLocation] = useState<location|undefined>(rehearsal?.venues[0])
-  const [selectedDay, setSelectedDay] = useState<day|null>(rehearsal?.day || null)
+  const [selectedDay, setSelectedDay] = useState<day | null>(rehearsal?.day || null)
   const [selectedTimes, setSelectedTimes] = useState<time|null>(rehearsal?{name:rehearsal.times, start_time:rehearsal._start_time, end_time:rehearsal._end_time}:null)
   const [selectedBSL, setSelectedBSL] = useState<person|undefined>(rehearsal?.bsl_interpreter)
-  const [selectedEnsemble, setSelectedEnsemble] = useState<ensemble|undefined>(rehearsal?.ensemble)
+  const [selectedEnsembles, setSelectedEnsembles] = useState<ensemble[]>(rehearsal?.ensembles || [])
   const [text, setText] = useState<string>(rehearsal?.notes?rehearsal.notes[0]:'')
   
   const queryClient = useQueryClient()
@@ -47,6 +46,7 @@ export default function EditRehearsal(
         mutationFn: (insertQ:string) => {return insertReheasal(insertQ)},
         onSuccess: (data:any) => {
             queryClient.invalidateQueries({ queryKey: ['rehearsals'] })
+            // rehearsal && queryClient.invalidateQueries({ queryKey: [`researsal_${rehearsal.id}`] })
             setEditOpen && setEditOpen(false)
             onSuccess?.(); // Call the close callback if provided
         },
@@ -69,7 +69,7 @@ export default function EditRehearsal(
 
 
   const form_ready = 
-        !selectedScene || !selectedTimes || 
+        !selectedScenes || !selectedTimes || 
         !selectedDay || !selectedLocation || 
         (selectedCalled.length === 0 )|| 
         !(selectedTeams.has('creative') && (selectedTeams.get('creative') as person[]).length > 0)
@@ -81,19 +81,19 @@ export default function EditRehearsal(
         const insertQ = upsertRehearsalQ(
               {
               rehearsal:rehearsal?.id as string || undefined,
-              aim:selectedScene as scene, 
+              aim:selectedScenes as scene[], 
               teams:selectedTeams,
               equipment:selectedEquipment as equipment[],
               location: selectedLocation as location,
               day:selectedDay as day,
               time:selectedTimes as time,
               called:selectedCalled,
-              ensemble: selectedEnsemble as ensemble,
+              ensembles: selectedEnsembles as ensemble[],
               bsl:selectedBSL,
               notes:text,
-              pages:selectedPages
           }          
         )
+        console.log(insertQ)
         insertRehearsal.mutate(insertQ)
       }}     
     >
@@ -103,8 +103,7 @@ export default function EditRehearsal(
         className={`w-full`}>
       <div className='flex flex-row items-start gap-6 text-sm bg-gray-50 p-2 outline outline-gray-400 rounded-lg'>
             <div className="flex flex-col gap-2">
-                {!scenesLoading?<SceneSelector scene={selectedScene || undefined} scenes={_scenes as scene[]} setSelectedScene={setSelectedScene}/>:'Form loading'}
-                {selectedScene?<PagesSelector pages={selectedPages} setPages={setSelectedPages}/>:''}
+                {!scenesLoading?<SceneSelector scenes={selectedScenes} play={_scenes as scene[]} setSelectedScenes={setSelectedScenes}/>:'Form loading'}
             </div>        
             <div className="">
                 {!daysLoading && days?
@@ -123,15 +122,14 @@ export default function EditRehearsal(
       </div>
       <div className="flex flex-row gap-4 p-4">
         <div className="text-xs w-48 pl-2 truncate text-nowrap">
-          {selectedScene && !selectedDay &&
+          {selectedScenes && !selectedDay &&
             <p className="text-xs text-red-700">Select a date</p>}
-              {selectedScene && selectedDay && 
-                <CharactersSelector called={selectedEnsemble?[...selectedCalled, selectedEnsemble]:selectedCalled} 
-                  sceneName={selectedScene.name} 
-                  setScene={setSelectedScene} 
+              {selectedScenes && selectedDay && 
+                <CharactersSelector called={selectedEnsembles?[...selectedCalled, ...selectedEnsembles]:selectedCalled} 
+                  scenes={selectedScenes} 
                   setCalled={setSelectedCalled} 
                   date={selectedDay._date} 
-                  setSelectedEnsemble={setSelectedEnsemble}/>}
+                  setSelectedEnsembles={setSelectedEnsembles}/>}
           </div>
         {!peopleLoading && people?<div className="flex flex-row gap-4">
           <div key={1} className="text-xs w-20">
