@@ -23,9 +23,9 @@ If you encounter a command not found error, try opening a new shell window.
 
 ## The data
 
-There's an encrypted zip file `/data/data.zip` with a dump of the database (`data.dump`). Unzip this (the Theatre Royal has the password) and use the the Gel CLI to import the dump into your target instance:
+There's an encrypted zip file `/data/database.zip` with a dump of the database. Unzip this (the Theatre Royal has the password) and use the the Gel CLI to import the dump into your target instance:
 
-`gel restore --all data.dump/ --dsn <target dsn>`
+`gel restore --all path-to-database/ --dsn <target dsn>`
 
 Replace <target dsn> with the Gel database's DSN.
 
