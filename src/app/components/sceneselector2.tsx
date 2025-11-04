@@ -16,7 +16,7 @@ export default function SceneSelector({scenes, play, setSelectedScenes}:{scenes:
               onValueChange={(value) => setSelectedScenes(value)}
             >
       <div className="flex flex-col gap-1">
-        <label className="text-xs leading-5 text-red-800 font-semibold" htmlFor={id}>
+        <label className="text-sm font-semibold text-gray-900" htmlFor={id}>
           Scenes
         </label>
         <Combobox.Chips
@@ -29,7 +29,7 @@ export default function SceneSelector({scenes, play, setSelectedScenes}:{scenes:
                 {value.map((s) => (
                   <Combobox.Chip
                     key={s.id}
-                    className="capitalize flex items-center gap-1 rounded-md bg-gray-100 px-1.5 py-[0.2rem] text-xs text-gray-900 outline-none cursor-default [@media(hover:hover)]:[&[data-highlighted]]:bg-blue-800 [@media(hover:hover)]:[&[data-highlighted]]:text-gray-50 focus-within:bg-blue-800 focus-within:text-gray-50"
+                    className="capitalize flex items-center gap-1 rounded-md bg-gray-100 px-1.5 py-[0.2rem] text-sm text-gray-900 outline-none cursor-default [@media(hover:hover)]:[&[data-highlighted]]:bg-blue-800 [@media(hover:hover)]:[&[data-highlighted]]:text-gray-50 focus-within:bg-blue-800 focus-within:text-gray-50"
                     aria-label={s.name}
                   >
                     {s.name}
@@ -45,7 +45,7 @@ export default function SceneSelector({scenes, play, setSelectedScenes}:{scenes:
                   id={id}
                   placeholder={value.length > 0 ? '' : 'select an actor'}
                   className={twMerge(
-                  "w-20 text-xs px-1 py-0.5 border rounded text-gray-700",
+                  "w-28 text-sm px-1 py-0.5 border rounded text-gray-700",
                   "bg-gray-100 text-gray-500"
                 )}
                 />
@@ -57,7 +57,7 @@ export default function SceneSelector({scenes, play, setSelectedScenes}:{scenes:
 
       <Combobox.Portal>
         <Combobox.Positioner className="z-50 outline-none" sideOffset={4} anchor={containerRef}>
-          <Combobox.Popup className="w-[var(--anchor-width)] max-h-[min(var(--available-height),23rem)] max-w-[var(--available-width)] origin-[var(--transform-origin)] overflow-y-auto scroll-pt-2 scroll-pb-2 overscroll-contain rounded-md bg-[canvas] py-2 text-gray-900 shadow-lg shadow-gray-200 outline-1 outline-gray-200 transition-[transform,scale,opacity] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 dark:shadow-none dark:-outline-offset-1 dark:outline-gray-300">
+          <Combobox.Popup className="w-28 max-h-[min(var(--available-height),23rem)] max-w-[var(--available-width)] origin-[var(--transform-origin)] overflow-y-auto scroll-pt-2 scroll-pb-2 overscroll-contain rounded-md bg-[canvas] py-2 text-gray-900 shadow-lg shadow-gray-200 outline-1 outline-gray-200 transition-[transform,scale,opacity] data-[ending-style]:scale-95 data-[ending-style]:opacity-0 data-[starting-style]:scale-95 data-[starting-style]:opacity-0 dark:shadow-none dark:-outline-offset-1 dark:outline-gray-300">
             <Combobox.Empty className="px-2 py-2 text-xs leading-2 text-gray-600 empty:m-0 empty:p-0">
               Scenes not found.
             </Combobox.Empty>
