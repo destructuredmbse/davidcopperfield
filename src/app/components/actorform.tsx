@@ -17,7 +17,6 @@ import { Combobox } from '@base-ui-components/react/combobox';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCast } from '../database/queries';
 import { personLabel } from './helpers';
-import PhotoSelector from './photoselector';
 
 interface ActorFormProps {
   actor?: actor;

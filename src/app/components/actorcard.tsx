@@ -5,10 +5,7 @@ import SafeAvatar from './safeavatar'
 import { ensLabel } from './helpers';
 import { colours } from './colours';
 import React, { useState } from 'react';
-import { AlertDialog } from '@base-ui-components/react/alert-dialog';
-import HighlightOffOutlinedIcon from '@mui/icons-material/HighlightOffOutlined';
-import { Dialog } from '@base-ui-components/react/dialog';
-import ActorForm from './actorform';
+
 
 
 
