@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { character, actor } from "./types"
-import { getCast, updateCharacter } from "../database/queries"
+import { getCast } from "../database/queries"
 import { Form } from "@base-ui-components/react/form"
 import React from "react"
 import { Field } from "@base-ui-components/react/field"

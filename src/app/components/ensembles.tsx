@@ -82,7 +82,7 @@ export function Ensembles(){
         <div className="flex flex-wrap flew-row columns-xs gap-4">
           {ensemble.members && ensemble.members.map((a, i) => (
               <div key={i} className='relative'>
-                <ActorCard actor={a} edit={false}/>
+                <ActorCard actor={a} />
                 {edit && <RemoveActor actor={a} ensemble={ensemble} featured={false} className='absolute bottom-1 right-1'/>}
                 <div className='absolute bottom-2 right-2'>
                 </div>

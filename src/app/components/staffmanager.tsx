@@ -148,7 +148,10 @@ export default function StaffManager({ existingStaff }: StaffManagerProps) {
                     <div className="relative">
                         <div className="absolute bottom-0.5 z-30 left-0.5 flex items-center content-center justify-between">
                             <Dialog.Trigger
-                                onClick={handleEdit}
+                                onClick={() => {
+                                  setIsEditMode(true);
+                                  setIsFormOpen(true);
+                                }}
                                 className="flex items-center space-x-1 px-2 py-1 text-xs text-gray-600 hover:text-red-600 hover:bg-gray-100 rounded transition-colors"
                             >
                                 <EditIcon sx={{ fontSize: 12 }} />

@@ -46,7 +46,6 @@ export default function BSLSelector({selected, bsl, setSelectedBSL}:{selected?:p
             <Combobox.List>
               {(item: person) => (
                 <Combobox.Item
-                  checked={selected && selected.id === item.id}
                   key={item.id}
                   value={item}
                   className="grid cursor-default grid-cols-[0.75rem_1fr] items-center gap-1 py-1 pr-1 pl-1 text-xs leading-4 outline-none select-none data-[highlighted]:relative data-[highlighted]:z-0 data-[highlighted]:text-gray-50 data-[highlighted]:before:absolute data-[highlighted]:before:inset-x-2 data-[highlighted]:before:inset-y-0 data-[highlighted]:before:z-[-1] data-[highlighted]:before:rounded-sm data-[highlighted]:before:bg-gray-300"
