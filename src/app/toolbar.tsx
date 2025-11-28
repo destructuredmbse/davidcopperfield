@@ -13,9 +13,11 @@ export default function DavidToolbar(){
       const fn = hasFirstName()
   const { data: session, status } = useSession()
 
+
+
     return(
               <Toolbar.Root className="flex flex-row items-right gap-px rounded-md border border-gray-200 bg-gray-50 p-0.5">
-                {status === 'authenticated' && <div className="flex flex-row">
+                {status === 'authenticated' && session?.user && <div className="flex flex-row">
                     <Selector isAdmin={isAdmin()} setSelected={setSelected}/>
                     <div className="p-2 text-xs text-red-800">{`${hasAnyRole([selected, 'full'])?'You can edit this page':'You can read this page'}`}</div>
                     <Tooltip.Root >

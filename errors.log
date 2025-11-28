@@ -1,0 +1,2 @@
+[auth][error] UnknownAction: Cannot parse action at /api/auth/error. Read more at https://errors.authjs.dev#unknownaction
+[auth][error] UnknownAction: Cannot parse action at /api/auth/providers. Read more at https://errors.authjs.dev#unknownaction

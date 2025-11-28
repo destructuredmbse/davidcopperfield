@@ -5,7 +5,7 @@ export function SignIn() {
     <form
       action={async (formData) => {
         "use server"
-        await signIn("credentials", formData)
+        await signIn("credentials", formData, { redirectTo: "/" })
       }}
     >
       <label>

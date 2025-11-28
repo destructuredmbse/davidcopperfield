@@ -4,6 +4,31 @@ import { signIn, getSession } from "next-auth/react"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
+/**
+ * Sign In Page Component
+ * 
+ * Provides a user authentication interface for the David Copperfield production
+ * management system. Handles credential-based authentication using NextAuth.js v5
+ * and includes error handling for various authentication scenarios.
+ * 
+ * @component
+ * @returns {JSX.Element} The signin form with theatre branding
+ * 
+ * Features:
+ * - Credentials-based authentication (username/password)
+ * - URL-based error message display
+ * - Callback URL redirection after successful login
+ * - Loading states and form validation
+ * - Responsive design with Theatre Royal Bath branding
+ * 
+ * @example
+ * // Accessed via routing
+ * // /auth/signin - Standard signin
+ * // /auth/signin?callbackUrl=/admin - Redirect to admin after login
+ * // /auth/signin?error=Invalid credentials - Display error message
+ * 
+ * @see {@link https://next-auth.js.org/getting-started/client} NextAuth Client API
+ */
 export default function SignIn() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -12,23 +37,43 @@ export default function SignIn() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get('callbackUrl') || '/'
+  const urlError = searchParams.get('error')
 
+  /**
+   * Handles form submission for user authentication
+   * 
+   * Processes login credentials through NextAuth.js credentials provider,
+   * manages loading states, and handles both successful and failed authentication
+   * attempts with appropriate user feedback.
+   * 
+   * @param {React.FormEvent} e - Form submission event
+   * @returns {Promise<void>} Completes when authentication process finishes
+   * 
+   * Flow:
+   * 1. Prevents default form submission
+   * 2. Sets loading state and clears previous errors
+   * 3. Attempts authentication via NextAuth signIn
+   * 4. On success: redirects to callback URL or home page
+   * 5. On failure: displays error message to user
+   * 6. Always resets loading state when complete
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
 
     try {
+      // Attempt credentials-based authentication
       const result = await signIn('credentials', {
         username,
         password,
-        redirect: false,
+        redirect: false, // Handle redirect manually
       })
 
       if (result?.error) {
         setError('Invalid credentials')
       } else {
-        // Success - redirect to callback URL or home
+        // Success - redirect to callback URL or home page
         router.push(callbackUrl)
       }
     } catch (error) {
@@ -52,9 +97,9 @@ export default function SignIn() {
         </div>
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
+          {(error || urlError) && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
+              {error || urlError}
             </div>
           )}
           

@@ -31,11 +31,11 @@ export function UserAccessProvider({ children }: UserAccessProviderProps) {
     return rba.includes(role);
   };
 
-  const hasFirstName = ():string => { return session?.user.first_name || ''}
+  const hasFirstName = ():string => { return session?.user?.first_name || ''}
 
   // Helper function to check if user is an admin
   const isAdmin = (): boolean => {
-    return session?.user.is_admin || false;
+    return session?.user?.is_admin || false;
   };
 
   // Helper function to check if user has any of the specified roles
